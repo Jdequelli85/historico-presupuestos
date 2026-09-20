@@ -1,1 +1,3738 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
+  <title>G&T S.R.L. — Histórico de Presupuestos</title>
+
+  <meta name="theme-color" content="#BE000F">
+  <meta name="description" content="Histórico de presupuestos G&T S.R.L.">
+
+  <style>
+
+    /* =====================================================
+       VARIABLES
+       ===================================================== */
+
+    :root {
+      --rojo: #BE000F;
+      --rojo2: #98000c;
+      --rojo-suave: #fff1f2;
+
+      --gris: #f3f4f6;
+      --gris2: #e5e7eb;
+      --gris3: #d1d5db;
+
+      --texto: #222;
+      --muted: #6b7280;
+
+      --verde: #176b2c;
+      --verde-suave: #ecfdf3;
+
+      --blanco: #ffffff;
+
+      --sombra:
+        0 10px 30px rgba(0, 0, 0, 0.08);
+
+      --radio: 16px;
+    }
+
+
+    /* =====================================================
+       RESET
+       ===================================================== */
+
+    * {
+      box-sizing: border-box;
+    }
+
+
+    html {
+      min-height: 100%;
+    }
+
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+
+      font-family:
+        Arial,
+        Helvetica,
+        sans-serif;
+
+      color: var(--texto);
+      background: var(--gris);
+
+      -webkit-font-smoothing: antialiased;
+    }
+
+
+    button,
+    input,
+    select {
+      font: inherit;
+    }
+
+
+    button {
+      cursor: pointer;
+    }
+
+
+    /* =====================================================
+       LOGIN
+       ===================================================== */
+
+    .login-screen {
+      min-height: 100vh;
+
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      padding: 24px;
+
+      background:
+        linear-gradient(
+          135deg,
+          #ffffff 0%,
+          #f3f4f6 100%
+        );
+    }
+
+
+    .login-card {
+      width: 100%;
+      max-width: 430px;
+
+      background: var(--blanco);
+
+      border-radius: 22px;
+
+      box-shadow: var(--sombra);
+
+      padding: 34px;
+    }
+
+
+    .login-logo {
+      width: 190px;
+      max-width: 70%;
+
+      display: block;
+
+      margin: 0 auto 28px;
+
+      object-fit: contain;
+    }
+
+
+    .login-title {
+      margin: 0;
+
+      text-align: center;
+
+      font-size: 24px;
+      font-weight: 800;
+    }
+
+
+    .login-subtitle {
+      margin: 8px 0 28px;
+
+      text-align: center;
+
+      color: var(--muted);
+
+      font-size: 14px;
+    }
+
+
+    .field {
+      margin-bottom: 18px;
+    }
+
+
+    .field label {
+      display: block;
+
+      margin-bottom: 7px;
+
+      font-size: 13px;
+      font-weight: 700;
+
+      color: #374151;
+    }
+
+
+    .field select,
+    .field input {
+      width: 100%;
+
+      height: 48px;
+
+      border: 1px solid var(--gris3);
+      border-radius: 10px;
+
+      padding: 0 14px;
+
+      background: white;
+
+      color: var(--texto);
+
+      outline: none;
+
+      transition:
+        border-color .2s,
+        box-shadow .2s;
+    }
+
+
+    .field select:focus,
+    .field input:focus {
+      border-color: var(--rojo);
+
+      box-shadow:
+        0 0 0 3px
+        rgba(190, 0, 15, .10);
+    }
+
+
+    .login-button {
+      width: 100%;
+
+      height: 50px;
+
+      border: 0;
+      border-radius: 10px;
+
+      background: var(--rojo);
+
+      color: white;
+
+      font-weight: 800;
+
+      transition:
+        background .2s,
+        transform .1s;
+    }
+
+
+    .login-button:hover {
+      background: var(--rojo2);
+    }
+
+
+    .login-button:active {
+      transform: scale(.99);
+    }
+
+
+    .login-error {
+      display: none;
+
+      margin-top: 16px;
+
+      padding: 11px 13px;
+
+      border-radius: 9px;
+
+      background: var(--rojo-suave);
+
+      color: var(--rojo);
+
+      font-size: 13px;
+
+      text-align: center;
+    }
+
+
+    /* =====================================================
+       APP
+       ===================================================== */
+
+    .app {
+      display: none;
+
+      min-height: 100vh;
+    }
+
+
+    /* =====================================================
+       HEADER
+       ===================================================== */
+
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+
+      background: white;
+
+      border-bottom:
+        1px solid var(--gris2);
+
+      box-shadow:
+        0 2px 12px
+        rgba(0, 0, 0, .05);
+    }
+
+
+    .topbar-inner {
+      width: min(1400px, 100%);
+
+      margin: 0 auto;
+
+      min-height: 72px;
+
+      padding:
+        12px 24px;
+
+      display: flex;
+
+      align-items: center;
+
+      justify-content: space-between;
+
+      gap: 20px;
+    }
+
+
+    .brand {
+      display: flex;
+
+      align-items: center;
+
+      gap: 14px;
+
+      min-width: 0;
+    }
+
+
+    .brand-logo {
+      width: 145px;
+      max-height: 48px;
+
+      object-fit: contain;
+    }
+
+
+    .brand-info {
+      border-left:
+        1px solid var(--gris2);
+
+      padding-left: 14px;
+    }
+
+
+    .brand-title {
+      font-size: 17px;
+      font-weight: 800;
+
+      white-space: nowrap;
+    }
+
+
+    .brand-user {
+      margin-top: 3px;
+
+      color: var(--muted);
+
+      font-size: 12px;
+    }
+
+
+    .topbar-actions {
+      display: flex;
+
+      align-items: center;
+
+      gap: 8px;
+    }
+
+
+    .top-button {
+      min-height: 40px;
+
+      padding:
+        0 14px;
+
+      border-radius: 9px;
+
+      border:
+        1px solid var(--gris2);
+
+      background: white;
+
+      color: #374151;
+
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+
+    .top-button:hover {
+      background: var(--gris);
+    }
+
+
+    .top-button.logout {
+      color: var(--rojo);
+
+      border-color:
+        rgba(190, 0, 15, .18);
+
+      background:
+        var(--rojo-suave);
+    }
+
+
+    /* =====================================================
+       CONTENEDOR
+       ===================================================== */
+
+    .container {
+      width: min(1400px, 100%);
+
+      margin: 0 auto;
+
+      padding:
+        28px 24px 50px;
+    }
+
+
+    /* =====================================================
+       TITULO
+       ===================================================== */
+
+    .page-heading {
+      margin-bottom: 22px;
+    }
+
+
+    .page-heading h1 {
+      margin: 0;
+
+      font-size: 28px;
+      line-height: 1.15;
+    }
+
+
+    .page-heading p {
+      margin: 7px 0 0;
+
+      color: var(--muted);
+
+      font-size: 14px;
+    }
+
+
+    /* =====================================================
+       RESUMEN
+       ===================================================== */
+
+    .summary-grid {
+      display: grid;
+
+      grid-template-columns:
+        repeat(3, minmax(0, 1fr));
+
+      gap: 14px;
+
+      margin-bottom: 20px;
+    }
+
+
+    .summary-card {
+      background: white;
+
+      border:
+        1px solid var(--gris2);
+
+      border-radius: var(--radio);
+
+      padding: 18px 20px;
+    }
+
+
+    .summary-label {
+      color: var(--muted);
+
+      font-size: 12px;
+
+      font-weight: 700;
+
+      text-transform: uppercase;
+
+      letter-spacing: .04em;
+    }
+
+
+    .summary-value {
+      margin-top: 7px;
+
+      font-size: 25px;
+
+      font-weight: 800;
+    }
+
+
+    .summary-card.total .summary-value {
+      color: var(--rojo);
+    }
+
+
+    /* =====================================================
+       FILTROS
+       ===================================================== */
+
+    .filters-card {
+      background: white;
+
+      border:
+        1px solid var(--gris2);
+
+      border-radius: var(--radio);
+
+      padding: 18px;
+
+      margin-bottom: 20px;
+    }
+
+
+    .filters-grid {
+      display: grid;
+
+      grid-template-columns:
+        minmax(220px, 2fr)
+        minmax(160px, 1fr)
+        minmax(160px, 1fr)
+        auto;
+
+      gap: 12px;
+
+      align-items: end;
+    }
+
+
+    .filter-group {
+      min-width: 0;
+    }
+
+
+    .filter-label {
+      display: block;
+
+      margin-bottom: 7px;
+
+      font-size: 12px;
+
+      color: var(--muted);
+
+      font-weight: 700;
+    }
+
+
+    .filter-input,
+    .filter-select {
+      width: 100%;
+
+      height: 44px;
+
+      border:
+        1px solid var(--gris3);
+
+      border-radius: 9px;
+
+      background: white;
+
+      padding:
+        0 12px;
+
+      outline: none;
+    }
+
+
+    .filter-input:focus,
+    .filter-select:focus {
+      border-color: var(--rojo);
+
+      box-shadow:
+        0 0 0 3px
+        rgba(190, 0, 15, .08);
+    }
+
+
+    .search-wrap {
+      position: relative;
+    }
+
+
+    .search-icon {
+      position: absolute;
+
+      left: 13px;
+      top: 50%;
+
+      transform: translateY(-50%);
+
+      color: var(--muted);
+
+      pointer-events: none;
+
+      font-size: 16px;
+    }
+
+
+    .search-input {
+      padding-left: 38px;
+    }
+
+
+    .refresh-button {
+      height: 44px;
+
+      padding:
+        0 16px;
+
+      border: 0;
+
+      border-radius: 9px;
+
+      background: var(--rojo);
+
+      color: white;
+
+      font-weight: 800;
+
+      white-space: nowrap;
+    }
+
+
+    .refresh-button:hover {
+      background: var(--rojo2);
+    }
+
+
+    .custom-dates {
+      display: none;
+
+      grid-template-columns:
+        1fr 1fr;
+
+      gap: 12px;
+
+      margin-top: 14px;
+
+      padding-top: 14px;
+
+      border-top:
+        1px solid var(--gris2);
+    }
+
+
+    .custom-dates.visible {
+      display: grid;
+    }
+
+
+    /* =====================================================
+       TABLA
+       ===================================================== */
+
+    .table-card {
+      background: white;
+
+      border:
+        1px solid var(--gris2);
+
+      border-radius: var(--radio);
+
+      overflow: hidden;
+    }
+
+
+    .table-wrapper {
+      width: 100%;
+
+      overflow-x: auto;
+    }
+
+
+    table {
+      width: 100%;
+
+      border-collapse: collapse;
+
+      min-width: 850px;
+    }
+
+
+    thead {
+      background: #fafafa;
+    }
+
+
+    th {
+      padding:
+        14px 16px;
+
+      text-align: left;
+
+      border-bottom:
+        1px solid var(--gris2);
+
+      color: #4b5563;
+
+      font-size: 11px;
+
+      font-weight: 800;
+
+      text-transform: uppercase;
+
+      letter-spacing: .04em;
+
+      white-space: nowrap;
+    }
+
+
+    td {
+      padding:
+        15px 16px;
+
+      border-bottom:
+        1px solid #f0f0f0;
+
+      font-size: 14px;
+
+      vertical-align: middle;
+    }
+
+
+    tbody tr:hover {
+      background: #fafafa;
+    }
+
+
+    tbody tr:last-child td {
+      border-bottom: 0;
+    }
+
+
+    .numero {
+      color: var(--rojo);
+
+      font-weight: 800;
+
+      white-space: nowrap;
+    }
+
+
+    .fecha {
+      color: #4b5563;
+
+      white-space: nowrap;
+    }
+
+
+    .cliente {
+      font-weight: 700;
+
+      max-width: 330px;
+
+      overflow: hidden;
+
+      text-overflow: ellipsis;
+
+      white-space: nowrap;
+    }
+
+
+    .telefono {
+      color: #4b5563;
+
+      white-space: nowrap;
+    }
+
+
+    .vendedor {
+      white-space: nowrap;
+    }
+
+
+    .total {
+      text-align: right;
+
+      font-weight: 800;
+
+      white-space: nowrap;
+    }
+
+
+    .estado {
+      display: inline-flex;
+
+      align-items: center;
+
+      padding:
+        5px 9px;
+
+      border-radius: 999px;
+
+      background: var(--verde-suave);
+
+      color: var(--verde);
+
+      font-size: 11px;
+
+      font-weight: 800;
+    }
+
+
+    .view-button {
+      border: 0;
+
+      border-radius: 8px;
+
+      padding:
+        8px 13px;
+
+      background: var(--rojo);
+
+      color: white;
+
+      font-size: 12px;
+
+      font-weight: 800;
+
+      white-space: nowrap;
+    }
+
+
+    .view-button:hover {
+      background: var(--rojo2);
+    }
+
+
+    /* =====================================================
+       MOBILE CARDS
+       ===================================================== */
+
+    .mobile-list {
+      display: none;
+
+      padding: 12px;
+    }
+
+
+    .mobile-card {
+      border:
+        1px solid var(--gris2);
+
+      border-radius: 14px;
+
+      padding: 15px;
+
+      margin-bottom: 10px;
+
+      background: white;
+    }
+
+
+    .mobile-card:last-child {
+      margin-bottom: 0;
+    }
+
+
+    .mobile-top {
+      display: flex;
+
+      align-items: flex-start;
+
+      justify-content: space-between;
+
+      gap: 10px;
+
+      margin-bottom: 12px;
+    }
+
+
+    .mobile-number {
+      color: var(--rojo);
+
+      font-size: 15px;
+
+      font-weight: 800;
+    }
+
+
+    .mobile-date {
+      margin-top: 3px;
+
+      color: var(--muted);
+
+      font-size: 12px;
+    }
+
+
+    .mobile-client {
+      font-size: 15px;
+
+      font-weight: 800;
+
+      line-height: 1.25;
+
+      margin-bottom: 10px;
+
+      word-break: break-word;
+    }
+
+
+    .mobile-data {
+      display: grid;
+
+      grid-template-columns:
+        1fr 1fr;
+
+      gap: 10px;
+
+      margin-bottom: 14px;
+    }
+
+
+    .mobile-data-item {
+      min-width: 0;
+    }
+
+
+    .mobile-data-label {
+      color: var(--muted);
+
+      font-size: 10px;
+
+      font-weight: 700;
+
+      text-transform: uppercase;
+    }
+
+
+    .mobile-data-value {
+      margin-top: 3px;
+
+      font-size: 13px;
+
+      overflow: hidden;
+
+      text-overflow: ellipsis;
+
+      white-space: nowrap;
+    }
+
+
+    .mobile-bottom {
+      display: flex;
+
+      align-items: center;
+
+      justify-content: space-between;
+
+      gap: 10px;
+
+      padding-top: 12px;
+
+      border-top:
+        1px solid var(--gris2);
+    }
+
+
+    .mobile-total {
+      color: var(--rojo);
+
+      font-size: 17px;
+
+      font-weight: 800;
+    }
+
+
+    /* =====================================================
+       ESTADOS
+       ===================================================== */
+
+    .loading {
+      padding: 55px 20px;
+
+      text-align: center;
+
+      color: var(--muted);
+
+      font-size: 14px;
+    }
+
+
+    .loading-spinner {
+      width: 30px;
+      height: 30px;
+
+      margin:
+        0 auto 12px;
+
+      border:
+        3px solid var(--gris2);
+
+      border-top-color:
+        var(--rojo);
+
+      border-radius: 50%;
+
+      animation:
+        spin .8s linear infinite;
+    }
+
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+
+    .empty {
+      padding: 55px 20px;
+
+      text-align: center;
+    }
+
+
+    .empty-icon {
+      font-size: 35px;
+
+      margin-bottom: 10px;
+    }
+
+
+    .empty-title {
+      font-size: 16px;
+
+      font-weight: 800;
+    }
+
+
+    .empty-text {
+      margin-top: 5px;
+
+      color: var(--muted);
+
+      font-size: 13px;
+    }
+
+
+    .error-box {
+      display: none;
+
+      margin-bottom: 20px;
+
+      padding: 13px 15px;
+
+      border-radius: 10px;
+
+      background: var(--rojo-suave);
+
+      color: var(--rojo);
+
+      font-size: 13px;
+
+      font-weight: 700;
+    }
+
+
+    /* =====================================================
+       RESPONSIVE
+       ===================================================== */
+
+    @media (max-width: 900px) {
+
+      .filters-grid {
+        grid-template-columns:
+          1fr 1fr;
+      }
+
+
+      .filter-search {
+        grid-column:
+          1 / -1;
+      }
+
+
+      .refresh-group {
+        grid-column:
+          1 / -1;
+      }
+
+
+      .refresh-button {
+        width: 100%;
+      }
+
+
+      .summary-grid {
+        grid-template-columns:
+          repeat(3, 1fr);
+      }
+
+    }
+
+
+    @media (max-width: 680px) {
+
+      .login-card {
+        padding: 26px 20px;
+
+        border-radius: 18px;
+      }
+
+
+      .topbar-inner {
+        padding:
+          10px 15px;
+
+        min-height: 64px;
+      }
+
+
+      .brand-logo {
+        width: 115px;
+      }
+
+
+      .brand-info {
+        padding-left: 10px;
+      }
+
+
+      .brand-title {
+        font-size: 14px;
+      }
+
+
+      .brand-user {
+        font-size: 11px;
+      }
+
+
+      .top-button.refresh-top {
+        display: none;
+      }
+
+
+      .top-button.logout {
+        padding:
+          0 10px;
+
+        font-size: 11px;
+      }
+
+
+      .container {
+        padding:
+          20px 12px 35px;
+      }
+
+
+      .page-heading {
+        margin-bottom: 16px;
+      }
+
+
+      .page-heading h1 {
+        font-size: 23px;
+      }
+
+
+      .page-heading p {
+        font-size: 13px;
+      }
+
+
+      .summary-grid {
+        grid-template-columns:
+          1fr 1fr;
+
+        gap: 9px;
+      }
+
+
+      .summary-card {
+        padding: 14px;
+      }
+
+
+      .summary-card:first-child {
+        grid-column:
+          1 / -1;
+      }
+
+
+      .summary-value {
+        font-size: 20px;
+      }
+
+
+      .filters-card {
+        padding: 13px;
+
+        border-radius: 13px;
+      }
+
+
+      .filters-grid {
+        grid-template-columns:
+          1fr 1fr;
+
+        gap: 9px;
+      }
+
+
+      .filter-search {
+        grid-column:
+          1 / -1;
+      }
+
+
+      .filter-group {
+        min-width: 0;
+      }
+
+
+      .filter-label {
+        font-size: 10px;
+      }
+
+
+      .filter-input,
+      .filter-select,
+      .refresh-button {
+        height: 43px;
+
+        font-size: 13px;
+      }
+
+
+      .custom-dates {
+        grid-template-columns:
+          1fr;
+
+        gap: 9px;
+      }
+
+
+      .table-card {
+        border-radius: 13px;
+      }
+
+
+      .table-wrapper {
+        display: none;
+      }
+
+
+      .mobile-list {
+        display: block;
+      }
+
+    }
+
+
+    @media (max-width: 420px) {
+
+      .brand-info {
+        display: none;
+      }
+
+
+      .brand-logo {
+        width: 125px;
+      }
+
+
+      .summary-grid {
+        grid-template-columns:
+          1fr 1fr;
+      }
+
+
+      .mobile-data {
+        grid-template-columns:
+          1fr;
+      }
+
+    }
+
+  </style>
+</head>
+
+
+<body>
+
+
+  <!-- =====================================================
+       LOGIN
+       ===================================================== -->
+
+  <section
+    id="loginScreen"
+    class="login-screen"
+  >
+
+    <div class="login-card">
+
+      <img
+        id="loginLogo"
+        class="login-logo"
+        src="https://raw.githubusercontent.com/Jdequelli85/qr-corralon/main/logo.png"
+        alt="G&T S.R.L."
+      >
+
+      <h1 class="login-title">
+        Histórico de Presupuestos
+      </h1>
+
+      <p class="login-subtitle">
+        Ingresá con tu usuario para consultar los presupuestos.
+      </p>
+
+
+      <div class="field">
+
+        <label for="usuario">
+          Vendedor
+        </label>
+
+        <select id="usuario">
+
+          <option value="">
+            Seleccionar vendedor
+          </option>
+
+          <option value="Agustin">
+            Agustin
+          </option>
+
+          <option value="Gaston">
+            Gaston
+          </option>
+
+          <option value="Tomito">
+            Tomito
+          </option>
+
+          <option value="Julio">
+            Julio
+          </option>
+
+        </select>
+
+      </div>
+
+
+      <div class="field">
+
+        <label for="pin">
+          PIN
+        </label>
+
+        <input
+          id="pin"
+          type="password"
+          inputmode="numeric"
+          autocomplete="current-password"
+          placeholder="Ingresá tu PIN"
+          maxlength="20"
+          onkeydown="if(event.key === 'Enter') iniciarSesion();"
+        >
+
+      </div>
+
+
+      <button
+        id="loginButton"
+        class="login-button"
+        type="button"
+        onclick="iniciarSesion()"
+      >
+        INGRESAR
+      </button>
+
+
+      <div
+        id="loginError"
+        class="login-error"
+      ></div>
+
+    </div>
+
+  </section>
+
+
+
+  <!-- =====================================================
+       APP
+       ===================================================== -->
+
+  <main
+    id="app"
+    class="app"
+  >
+
+
+    <!-- HEADER -->
+
+    <header class="topbar">
+
+      <div class="topbar-inner">
+
+        <div class="brand">
+
+          <img
+            class="brand-logo"
+            src="https://raw.githubusercontent.com/Jdequelli85/qr-corralon/main/logo.png"
+            alt="G&T S.R.L."
+          >
+
+          <div class="brand-info">
+
+            <div class="brand-title">
+              Histórico de presupuestos
+            </div>
+
+            <div
+              id="brandUser"
+              class="brand-user"
+            >
+              Vendedor:
+            </div>
+
+          </div>
+
+        </div>
+
+
+        <div class="topbar-actions">
+
+          <button
+            class="top-button refresh-top"
+            type="button"
+            onclick="cargarHistorico()"
+          >
+            ↻ Actualizar
+          </button>
+
+          <button
+            class="top-button logout"
+            type="button"
+            onclick="cerrarSesion()"
+          >
+            Salir
+          </button>
+
+        </div>
+
+      </div>
+
+    </header>
+
+
+
+    <!-- CONTENIDO -->
+
+    <div class="container">
+
+
+      <!-- TITULO -->
+
+      <section class="page-heading">
+
+        <h1>
+          Presupuestos
+        </h1>
+
+        <p>
+          Consultá y abrí los presupuestos generados anteriormente.
+        </p>
+
+      </section>
+
+
+
+      <!-- ERROR -->
+
+      <div
+        id="errorBox"
+        class="error-box"
+      ></div>
+
+
+
+      <!-- RESUMEN -->
+
+      <section class="summary-grid">
+
+        <div class="summary-card">
+
+          <div class="summary-label">
+            Presupuestos
+          </div>
+
+          <div
+            id="summaryCount"
+            class="summary-value"
+          >
+            0
+          </div>
+
+        </div>
+
+
+        <div class="summary-card total">
+
+          <div class="summary-label">
+            Total filtrado
+          </div>
+
+          <div
+            id="summaryTotal"
+            class="summary-value"
+          >
+            $0,00
+          </div>
+
+        </div>
+
+
+        <div class="summary-card">
+
+          <div class="summary-label">
+            Vendedor
+          </div>
+
+          <div
+            id="summarySeller"
+            class="summary-value"
+          >
+            Todos
+          </div>
+
+        </div>
+
+      </section>
+
+
+
+      <!-- FILTROS -->
+
+      <section class="filters-card">
+
+        <div class="filters-grid">
+
+
+          <!-- BUSCADOR -->
+
+          <div class="filter-group filter-search">
+
+            <label
+              class="filter-label"
+              for="buscar"
+            >
+              Buscar presupuesto
+            </label>
+
+            <div class="search-wrap">
+
+              <span class="search-icon">
+                🔎
+              </span>
+
+              <input
+                id="buscar"
+                class="filter-input search-input"
+                type="search"
+                placeholder="Ej.: 41, 000041..."
+                autocomplete="off"
+                oninput="aplicarFiltros()"
+              >
+
+            </div>
+
+          </div>
+
+
+          <!-- FECHA -->
+
+          <div class="filter-group">
+
+            <label
+              class="filter-label"
+              for="filtroFecha"
+            >
+              Período
+            </label>
+
+            <select
+              id="filtroFecha"
+              class="filter-select"
+              onchange="cambioFiltroFecha()"
+            >
+
+              <option value="todos">
+                Todos
+              </option>
+
+              <option value="hoy">
+                Hoy
+              </option>
+
+              <option value="ayer">
+                Ayer
+              </option>
+
+              <option value="semana">
+                Esta semana
+              </option>
+
+              <option value="semanaAnterior">
+                Semana anterior
+              </option>
+
+              <option value="mes">
+                Este mes
+              </option>
+
+              <option value="mesAnterior">
+                Mes anterior
+              </option>
+
+              <option value="30dias">
+                Últimos 30 días
+              </option>
+
+              <option value="personalizado">
+                Personalizado
+              </option>
+
+            </select>
+
+          </div>
+
+
+          <!-- VENDEDOR -->
+
+          <div class="filter-group">
+
+            <label
+              class="filter-label"
+              for="filtroVendedor"
+            >
+              Vendedor
+            </label>
+
+            <select
+              id="filtroVendedor"
+              class="filter-select"
+              onchange="aplicarFiltros()"
+            >
+
+              <option value="">
+                Todos
+              </option>
+
+            </select>
+
+          </div>
+
+
+          <!-- ACTUALIZAR -->
+
+          <div class="filter-group refresh-group">
+
+            <label
+              class="filter-label"
+              style="visibility:hidden;"
+            >
+              Actualizar
+            </label>
+
+            <button
+              class="refresh-button"
+              type="button"
+              onclick="cargarHistorico()"
+            >
+              ↻ Actualizar datos
+            </button>
+
+          </div>
+
+        </div>
+
+
+        <!-- FECHAS PERSONALIZADAS -->
+
+        <div
+          id="customDates"
+          class="custom-dates"
+        >
+
+          <div class="filter-group">
+
+            <label
+              class="filter-label"
+              for="fechaDesde"
+            >
+              Desde
+            </label>
+
+            <input
+              id="fechaDesde"
+              class="filter-input"
+              type="date"
+              onchange="aplicarFiltros()"
+            >
+
+          </div>
+
+
+          <div class="filter-group">
+
+            <label
+              class="filter-label"
+              for="fechaHasta"
+            >
+              Hasta
+            </label>
+
+            <input
+              id="fechaHasta"
+              class="filter-input"
+              type="date"
+              onchange="aplicarFiltros()"
+            >
+
+          </div>
+
+        </div>
+
+      </section>
+
+
+
+      <!-- TABLA -->
+
+      <section class="table-card">
+
+
+        <!-- CARGANDO -->
+
+        <div
+          id="loading"
+          class="loading"
+        >
+
+          <div class="loading-spinner"></div>
+
+          Cargando presupuestos...
+
+        </div>
+
+
+
+        <!-- TABLA DESKTOP -->
+
+        <div
+          id="tableWrapper"
+          class="table-wrapper"
+          style="display:none;"
+        >
+
+          <table>
+
+            <thead>
+
+              <tr>
+
+                <th>
+                  Nº presupuesto
+                </th>
+
+                <th>
+                  Fecha
+                </th>
+
+                <th>
+                  Vendedor
+                </th>
+
+                <th>
+                  Cliente
+                </th>
+
+                <th>
+                  Teléfono
+                </th>
+
+                <th style="text-align:right;">
+                  Total
+                </th>
+
+                <th>
+                  Estado
+                </th>
+
+                <th>
+                </th>
+
+              </tr>
+
+            </thead>
+
+
+            <tbody
+              id="tableBody"
+            ></tbody>
+
+          </table>
+
+        </div>
+
+
+
+        <!-- MOBILE -->
+
+        <div
+          id="mobileList"
+          class="mobile-list"
+          style="display:none;"
+        ></div>
+
+
+
+        <!-- VACÍO -->
+
+        <div
+          id="empty"
+          class="empty"
+          style="display:none;"
+        >
+
+          <div class="empty-icon">
+            🔎
+          </div>
+
+          <div class="empty-title">
+            No encontramos presupuestos
+          </div>
+
+          <div class="empty-text">
+            Probá cambiar el número de presupuesto o los filtros.
+          </div>
+
+        </div>
+
+
+      </section>
+
+    </div>
+
+  </main>
+
+
+
+  <script>
+
+    /* =====================================================
+       CONFIGURACIÓN
+       ===================================================== */
+
+    const API_URL =
+      "https://script.google.com/macros/s/AKfycby_3DebaIbZZW2qZ7ShkePBD40Bzo8wGyaHAw8w0omsKahF6CpuUEEPaG2ox3fGkAqk0w/exec";
+
+
+    const LOGO_URL =
+      "https://raw.githubusercontent.com/Jdequelli85/qr-corralon/main/logo.png";
+
+
+    const PRESUPUESTO_URL =
+      "https://presupuesto.gytsrl.com/";
+
+
+    /* =====================================================
+       SESIÓN
+       ===================================================== */
+
+    let token =
+      sessionStorage.getItem("gt_historico_token") || "";
+
+    let vendedor =
+      sessionStorage.getItem("gt_historico_usuario") || "";
+
+
+    let historico = [];
+
+    let historicoFiltrado = [];
+
+
+    /* =====================================================
+       JSONP
+       ===================================================== */
+
+    function jsonp(params) {
+
+      return new Promise(function(resolve, reject) {
+
+        const callbackName =
+          "gtHistoricoCallback_" +
+          Date.now() +
+          "_" +
+          Math.floor(
+            Math.random() * 100000
+          );
+
+
+        const script =
+          document.createElement("script");
+
+
+        const query =
+          new URLSearchParams();
+
+
+        Object.keys(params || {}).forEach(function(key) {
+
+          const value =
+            params[key];
+
+          if (
+            value !== undefined &&
+            value !== null
+          ) {
+
+            query.append(
+              key,
+              String(value)
+            );
+
+          }
+
+        });
+
+
+        query.append(
+          "callback",
+          callbackName
+        );
+
+
+        let terminado = false;
+
+
+        function limpiar() {
+
+          try {
+            delete window[callbackName];
+          } catch (_) {}
+
+          if (script.parentNode) {
+            script.parentNode.removeChild(script);
+          }
+
+        }
+
+
+        const timeout =
+          setTimeout(function() {
+
+            if (terminado) return;
+
+            terminado = true;
+
+            limpiar();
+
+            reject(
+              new Error(
+                "Tiempo de espera agotado."
+              )
+            );
+
+          }, 30000);
+
+
+        window[callbackName] =
+          function(data) {
+
+            if (terminado) return;
+
+            terminado = true;
+
+            clearTimeout(timeout);
+
+            limpiar();
+
+            resolve(data);
+
+          };
+
+
+        script.onerror =
+          function() {
+
+            if (terminado) return;
+
+            terminado = true;
+
+            clearTimeout(timeout);
+
+            limpiar();
+
+            reject(
+              new Error(
+                "No se pudo conectar con el servidor."
+              )
+            );
+
+          };
+
+
+        script.src =
+          API_URL +
+          "?" +
+          query.toString();
+
+
+        document.body.appendChild(script);
+
+      });
+
+    }
+
+
+    /* =====================================================
+       INICIO
+       ===================================================== */
+
+    document.addEventListener(
+      "DOMContentLoaded",
+      function() {
+
+        if (token && vendedor) {
+
+          mostrarApp();
+
+          cargarHistorico();
+
+        } else {
+
+          mostrarLogin();
+
+        }
+
+      }
+    );
+
+
+    /* =====================================================
+       LOGIN
+       ===================================================== */
+
+    async function iniciarSesion() {
+
+      const usuario =
+        document
+          .getElementById("usuario")
+          .value
+          .trim();
+
+
+      const pin =
+        document
+          .getElementById("pin")
+          .value
+          .trim();
+
+
+      const error =
+        document.getElementById(
+          "loginError"
+        );
+
+
+      const button =
+        document.getElementById(
+          "loginButton"
+        );
+
+
+      error.style.display = "none";
+
+
+      if (!usuario || !pin) {
+
+        mostrarLoginError(
+          "Completá usuario y PIN."
+        );
+
+        return;
+
+      }
+
+
+      button.disabled = true;
+
+      button.textContent =
+        "INGRESANDO...";
+
+
+      try {
+
+        const respuesta =
+          await jsonp({
+
+            accion: "login",
+
+            usuario: usuario,
+
+            pin: pin
+
+          });
+
+
+        if (
+          !respuesta ||
+          !respuesta.ok
+        ) {
+
+          throw new Error(
+            respuesta?.error ||
+            "Usuario o PIN incorrecto."
+          );
+
+        }
+
+
+        token =
+          String(
+            respuesta.token || ""
+          );
+
+
+        vendedor =
+          String(
+            respuesta.usuario ||
+            usuario
+          );
+
+
+        sessionStorage.setItem(
+          "gt_historico_token",
+          token
+        );
+
+
+        sessionStorage.setItem(
+          "gt_historico_usuario",
+          vendedor
+        );
+
+
+        mostrarApp();
+
+        cargarHistorico();
+
+
+      } catch (errorLogin) {
+
+        mostrarLoginError(
+          errorLogin.message ||
+          "No se pudo iniciar sesión."
+        );
+
+
+      } finally {
+
+        button.disabled = false;
+
+        button.textContent =
+          "INGRESAR";
+
+      }
+
+    }
+
+
+    function mostrarLoginError(mensaje) {
+
+      const error =
+        document.getElementById(
+          "loginError"
+        );
+
+
+      error.textContent =
+        mensaje || "Error.";
+
+      error.style.display =
+        "block";
+
+    }
+
+
+    /* =====================================================
+       MOSTRAR / OCULTAR PANTALLAS
+       ===================================================== */
+
+    function mostrarLogin() {
+
+      document
+        .getElementById("loginScreen")
+        .style.display = "flex";
+
+
+      document
+        .getElementById("app")
+        .style.display = "none";
+
+    }
+
+
+    function mostrarApp() {
+
+      document
+        .getElementById("loginScreen")
+        .style.display = "none";
+
+
+      document
+        .getElementById("app")
+        .style.display = "block";
+
+
+      document
+        .getElementById("brandUser")
+        .textContent =
+        "Vendedor: " +
+        (vendedor || "");
+
+    }
+
+
+    /* =====================================================
+       CERRAR SESIÓN
+       ===================================================== */
+
+    function cerrarSesion() {
+
+      sessionStorage.removeItem(
+        "gt_historico_token"
+      );
+
+      sessionStorage.removeItem(
+        "gt_historico_usuario"
+      );
+
+
+      token = "";
+
+      vendedor = "";
+
+      historico = [];
+
+      historicoFiltrado = [];
+
+
+      mostrarLogin();
+
+
+      document
+        .getElementById("pin")
+        .value = "";
+
+    }
+
+
+    /* =====================================================
+       CARGAR HISTÓRICO
+       ===================================================== */
+
+    async function cargarHistorico() {
+
+      if (!token) {
+
+        mostrarLogin();
+
+        return;
+
+      }
+
+
+      mostrarLoading();
+
+      ocultarError();
+
+
+      try {
+
+        const respuesta =
+          await jsonp({
+
+            accion: "historico",
+
+            token: token
+
+          });
+
+
+        if (
+          !respuesta ||
+          !respuesta.ok
+        ) {
+
+          const mensaje =
+            respuesta?.error ||
+            "No se pudo cargar el histórico.";
+
+
+          if (
+            mensaje
+              .toLowerCase()
+              .includes("sesión")
+          ) {
+
+            cerrarSesion();
+
+            mostrarLoginError(
+              mensaje
+            );
+
+            return;
+
+          }
+
+
+          throw new Error(
+            mensaje
+          );
+
+        }
+
+
+        historico =
+          Array.isArray(
+            respuesta.presupuestos
+          )
+            ? respuesta.presupuestos
+            : [];
+
+
+        prepararVendedores();
+
+        aplicarFiltros();
+
+
+      } catch (error) {
+
+        mostrarError(
+          error.message ||
+          "No se pudo cargar el histórico."
+        );
+
+
+        mostrarEmpty();
+
+      }
+
+    }
+
+
+    /* =====================================================
+       VENDEDORES
+       ===================================================== */
+
+    function prepararVendedores() {
+
+      const select =
+        document.getElementById(
+          "filtroVendedor"
+        );
+
+
+      const actual =
+        select.value;
+
+
+      const vendedores =
+        [
+          ...new Set(
+            historico
+              .map(function(item) {
+
+                return String(
+                  item.vendedor || ""
+                ).trim();
+
+              })
+              .filter(Boolean)
+          )
+        ]
+        .sort(function(a, b) {
+
+          return a.localeCompare(
+            b,
+            "es"
+          );
+
+        });
+
+
+      select.innerHTML =
+        '<option value="">Todos</option>';
+
+
+      vendedores.forEach(function(nombre) {
+
+        const option =
+          document.createElement(
+            "option"
+          );
+
+
+        option.value =
+          nombre;
+
+
+        option.textContent =
+          nombre;
+
+
+        select.appendChild(
+          option
+        );
+
+      });
+
+
+      if (
+        vendedores.includes(actual)
+      ) {
+
+        select.value =
+          actual;
+
+      }
+
+    }
+
+
+    /* =====================================================
+       FILTRO DE FECHA
+       ===================================================== */
+
+    function cambioFiltroFecha() {
+
+      const valor =
+        document
+          .getElementById("filtroFecha")
+          .value;
+
+
+      const custom =
+        document.getElementById(
+          "customDates"
+        );
+
+
+      if (
+        valor === "personalizado"
+      ) {
+
+        custom.classList.add(
+          "visible"
+        );
+
+      } else {
+
+        custom.classList.remove(
+          "visible"
+        );
+
+      }
+
+
+      aplicarFiltros();
+
+    }
+
+
+    function obtenerFechaHoy() {
+
+      const ahora =
+        new Date();
+
+
+      return new Date(
+        ahora.getFullYear(),
+        ahora.getMonth(),
+        ahora.getDate()
+      );
+
+    }
+
+
+    function obtenerFechaISODesdeDate(fecha) {
+
+      const y =
+        fecha.getFullYear();
+
+
+      const m =
+        String(
+          fecha.getMonth() + 1
+        ).padStart(2, "0");
+
+
+      const d =
+        String(
+          fecha.getDate()
+        ).padStart(2, "0");
+
+
+      return (
+        y +
+        "-" +
+        m +
+        "-" +
+        d
+      );
+
+    }
+
+
+    function obtenerRangoFecha() {
+
+      const filtro =
+        document
+          .getElementById("filtroFecha")
+          .value;
+
+
+      const hoy =
+        obtenerFechaHoy();
+
+
+      let desde = null;
+      let hasta = null;
+
+
+      if (
+        filtro === "hoy"
+      ) {
+
+        desde =
+          new Date(hoy);
+
+        hasta =
+          new Date(hoy);
+
+      }
+
+
+      else if (
+        filtro === "ayer"
+      ) {
+
+        desde =
+          new Date(hoy);
+
+        desde.setDate(
+          desde.getDate() - 1
+        );
+
+        hasta =
+          new Date(desde);
+
+      }
+
+
+      else if (
+        filtro === "semana"
+      ) {
+
+        desde =
+          new Date(hoy);
+
+
+        const dia =
+          desde.getDay();
+
+
+        const diferencia =
+          dia === 0
+            ? 6
+            : dia - 1;
+
+
+        desde.setDate(
+          desde.getDate() -
+          diferencia
+        );
+
+
+        hasta =
+          new Date(hoy);
+
+      }
+
+
+      else if (
+        filtro === "semanaAnterior"
+      ) {
+
+        hasta =
+          new Date(hoy);
+
+
+        const dia =
+          hasta.getDay();
+
+
+        const diferencia =
+          dia === 0
+            ? 6
+            : dia - 1;
+
+
+        hasta.setDate(
+          hasta.getDate() -
+          diferencia -
+          1
+        );
+
+
+        desde =
+          new Date(hasta);
+
+
+        desde.setDate(
+          desde.getDate() - 6
+        );
+
+      }
+
+
+      else if (
+        filtro === "mes"
+      ) {
+
+        desde =
+          new Date(
+            hoy.getFullYear(),
+            hoy.getMonth(),
+            1
+          );
+
+
+        hasta =
+          new Date(hoy);
+
+      }
+
+
+      else if (
+        filtro === "mesAnterior"
+      ) {
+
+        desde =
+          new Date(
+            hoy.getFullYear(),
+            hoy.getMonth() - 1,
+            1
+          );
+
+
+        hasta =
+          new Date(
+            hoy.getFullYear(),
+            hoy.getMonth(),
+            0
+          );
+
+      }
+
+
+      else if (
+        filtro === "30dias"
+      ) {
+
+        desde =
+          new Date(hoy);
+
+
+        desde.setDate(
+          desde.getDate() - 29
+        );
+
+
+        hasta =
+          new Date(hoy);
+
+      }
+
+
+      else if (
+        filtro === "personalizado"
+      ) {
+
+        const desdeInput =
+          document.getElementById(
+            "fechaDesde"
+          ).value;
+
+
+        const hastaInput =
+          document.getElementById(
+            "fechaHasta"
+          ).value;
+
+
+        if (desdeInput) {
+
+          desde =
+            new Date(
+              desdeInput +
+              "T00:00:00"
+            );
+
+        }
+
+
+        if (hastaInput) {
+
+          hasta =
+            new Date(
+              hastaInput +
+              "T00:00:00"
+            );
+
+        }
+
+      }
+
+
+      return {
+        desde: desde,
+        hasta: hasta
+      };
+
+    }
+
+
+    /* =====================================================
+       APLICAR FILTROS
+       ===================================================== */
+
+    function aplicarFiltros() {
+
+      if (!Array.isArray(historico)) {
+
+        historicoFiltrado = [];
+
+        renderizar();
+
+        return;
+
+      }
+
+
+      const texto =
+        document
+          .getElementById("buscar")
+          .value
+          .trim()
+          .toLowerCase();
+
+
+      const vendedorFiltro =
+        document
+          .getElementById("filtroVendedor")
+          .value
+          .trim();
+
+
+      const rango =
+        obtenerRangoFecha();
+
+
+      historicoFiltrado =
+        historico.filter(
+          function(item) {
+
+            /* ------------------------------
+               BÚSQUEDA
+               ------------------------------ */
+
+            if (texto) {
+
+              const numero =
+                String(
+                  item.numero || ""
+                )
+                .toLowerCase();
+
+
+              const numeroSolo =
+                numero.replace(
+                  /\D/g,
+                  ""
+                );
+
+
+              const textoSolo =
+                texto.replace(
+                  /\D/g,
+                  ""
+                );
+
+
+              const coincideNumero =
+                numero.includes(
+                  texto
+                );
+
+
+              const coincideNumerico =
+                textoSolo &&
+                numeroSolo.includes(
+                  textoSolo
+                );
+
+
+              if (
+                !coincideNumero &&
+                !coincideNumerico
+              ) {
+
+                return false;
+
+              }
+
+            }
+
+
+            /* ------------------------------
+               VENDEDOR
+               ------------------------------ */
+
+            if (
+              vendedorFiltro &&
+              String(
+                item.vendedor || ""
+              ).trim() !==
+              vendedorFiltro
+            ) {
+
+              return false;
+
+            }
+
+
+            /* ------------------------------
+               FECHA
+               ------------------------------ */
+
+            if (
+              rango.desde ||
+              rango.hasta
+            ) {
+
+              const fechaItem =
+                parsearFechaISO(
+                  item.fechaISO
+                );
+
+
+              if (!fechaItem) {
+
+                return false;
+
+              }
+
+
+              if (
+                rango.desde &&
+                fechaItem <
+                rango.desde
+              ) {
+
+                return false;
+
+              }
+
+
+              if (
+                rango.hasta &&
+                fechaItem >
+                rango.hasta
+              ) {
+
+                return false;
+
+              }
+
+            }
+
+
+            return true;
+
+          }
+        );
+
+
+      /* ------------------------------
+         ORDEN
+         ------------------------------ */
+
+      historicoFiltrado.sort(
+        function(a, b) {
+
+          const fechaA =
+            String(
+              a.fechaISO || ""
+            );
+
+
+          const fechaB =
+            String(
+              b.fechaISO || ""
+            );
+
+
+          if (
+            fechaA &&
+            fechaB &&
+            fechaA !== fechaB
+          ) {
+
+            return fechaB.localeCompare(
+              fechaA
+            );
+
+          }
+
+
+          const numeroA =
+            parseInt(
+              String(
+                a.numero || ""
+              ).replace(
+                /\D/g,
+                ""
+              ),
+              10
+            ) || 0;
+
+
+          const numeroB =
+            parseInt(
+              String(
+                b.numero || ""
+              ).replace(
+                /\D/g,
+                ""
+              ),
+              10
+            ) || 0;
+
+
+          return numeroB - numeroA;
+
+        }
+      );
+
+
+      renderizar();
+
+    }
+
+
+    /* =====================================================
+       PARSEAR FECHA
+       ===================================================== */
+
+    function parsearFechaISO(valor) {
+
+      if (!valor) {
+        return null;
+      }
+
+
+      const texto =
+        String(valor);
+
+
+      const partes =
+        texto.split("-");
+
+
+      if (
+        partes.length !== 3
+      ) {
+
+        return null;
+
+      }
+
+
+      const año =
+        Number(partes[0]);
+
+
+      const mes =
+        Number(partes[1]) - 1;
+
+
+      const dia =
+        Number(partes[2]);
+
+
+      const fecha =
+        new Date(
+          año,
+          mes,
+          dia
+        );
+
+
+      if (
+        isNaN(
+          fecha.getTime()
+        )
+      ) {
+
+        return null;
+
+      }
+
+
+      return fecha;
+
+    }
+
+
+    /* =====================================================
+       RENDER
+       ===================================================== */
+
+    function renderizar() {
+
+      ocultarLoading();
+
+
+      const cantidad =
+        historicoFiltrado.length;
+
+
+      const total =
+        historicoFiltrado.reduce(
+          function(acumulado, item) {
+
+            return (
+              acumulado +
+              numeroSeguro(
+                item.total
+              )
+            );
+
+          },
+          0
+        );
+
+
+      document
+        .getElementById(
+          "summaryCount"
+        )
+        .textContent =
+        cantidad.toLocaleString(
+          "es-AR"
+        );
+
+
+      document
+        .getElementById(
+          "summaryTotal"
+        )
+        .textContent =
+        formatearMoneda(total);
+
+
+      const vendedorFiltro =
+        document
+          .getElementById(
+            "filtroVendedor"
+          )
+          .value;
+
+
+      document
+        .getElementById(
+          "summarySeller"
+        )
+        .textContent =
+        vendedorFiltro ||
+        "Todos";
+
+
+      if (!cantidad) {
+
+        mostrarEmpty();
+
+        return;
+
+      }
+
+
+      ocultarEmpty();
+
+
+      renderizarTabla();
+
+      renderizarMobile();
+
+    }
+
+
+    /* =====================================================
+       TABLA
+       ===================================================== */
+
+    function renderizarTabla() {
+
+      const wrapper =
+        document.getElementById(
+          "tableWrapper"
+        );
+
+
+      const body =
+        document.getElementById(
+          "tableBody"
+        );
+
+
+      body.innerHTML = "";
+
+
+      historicoFiltrado.forEach(
+        function(item) {
+
+          const tr =
+            document.createElement(
+              "tr"
+            );
+
+
+          const numero =
+            escaparHTML(
+              item.numero
+            );
+
+
+          const fecha =
+            escaparHTML(
+              item.fecha ||
+              formatearFechaISO(
+                item.fechaISO
+              )
+            );
+
+
+          const vendedorItem =
+            escaparHTML(
+              item.vendedor ||
+              "-"
+            );
+
+
+          const cliente =
+            escaparHTML(
+              item.cliente ||
+              "Sin cliente"
+            );
+
+
+          const telefono =
+            escaparHTML(
+              item.telefono ||
+              "-"
+            );
+
+
+          const estado =
+            escaparHTML(
+              item.estado ||
+              "Generado"
+            );
+
+
+          const total =
+            formatearMoneda(
+              numeroSeguro(
+                item.total
+              )
+            );
+
+
+          tr.innerHTML = `
+
+            <td>
+              <span class="numero">
+                ${numero}
+              </span>
+            </td>
+
+            <td>
+              <span class="fecha">
+                ${fecha}
+              </span>
+            </td>
+
+            <td>
+              <span class="vendedor">
+                ${vendedorItem}
+              </span>
+            </td>
+
+            <td>
+              <span
+                class="cliente"
+                title="${cliente}"
+              >
+                ${cliente}
+              </span>
+            </td>
+
+            <td>
+              <span class="telefono">
+                ${telefono}
+              </span>
+            </td>
+
+            <td class="total">
+              ${total}
+            </td>
+
+            <td>
+              <span class="estado">
+                ${estado}
+              </span>
+            </td>
+
+            <td>
+              <button
+                class="view-button"
+                type="button"
+                onclick='verPresupuesto(${JSON.stringify(
+                  String(item.numero || "")
+                )})'
+              >
+                👁 VER
+              </button>
+            </td>
+
+          `;
+
+
+          body.appendChild(
+            tr
+          );
+
+        }
+      );
+
+
+      wrapper.style.display =
+        "block";
+
+    }
+
+
+    /* =====================================================
+       MOBILE
+       ===================================================== */
+
+    function renderizarMobile() {
+
+      const list =
+        document.getElementById(
+          "mobileList"
+        );
+
+
+      list.innerHTML = "";
+
+
+      historicoFiltrado.forEach(
+        function(item) {
+
+          const card =
+            document.createElement(
+              "article"
+            );
+
+
+          card.className =
+            "mobile-card";
+
+
+          const numero =
+            escaparHTML(
+              item.numero
+            );
+
+
+          const fecha =
+            escaparHTML(
+              item.fecha ||
+              formatearFechaISO(
+                item.fechaISO
+              )
+            );
+
+
+          const cliente =
+            escaparHTML(
+              item.cliente ||
+              "Sin cliente"
+            );
+
+
+          const vendedorItem =
+            escaparHTML(
+              item.vendedor ||
+              "-"
+            );
+
+
+          const telefono =
+            escaparHTML(
+              item.telefono ||
+              "-"
+            );
+
+
+          const estado =
+            escaparHTML(
+              item.estado ||
+              "Generado"
+            );
+
+
+          const total =
+            formatearMoneda(
+              numeroSeguro(
+                item.total
+              )
+            );
+
+
+          card.innerHTML = `
+
+            <div class="mobile-top">
+
+              <div>
+
+                <div class="mobile-number">
+                  ${numero}
+                </div>
+
+                <div class="mobile-date">
+                  ${fecha}
+                </div>
+
+              </div>
+
+              <span class="estado">
+                ${estado}
+              </span>
+
+            </div>
+
+
+            <div class="mobile-client">
+              ${cliente}
+            </div>
+
+
+            <div class="mobile-data">
+
+              <div class="mobile-data-item">
+
+                <div class="mobile-data-label">
+                  Vendedor
+                </div>
+
+                <div class="mobile-data-value">
+                  ${vendedorItem}
+                </div>
+
+              </div>
+
+
+              <div class="mobile-data-item">
+
+                <div class="mobile-data-label">
+                  Teléfono
+                </div>
+
+                <div class="mobile-data-value">
+                  ${telefono}
+                </div>
+
+              </div>
+
+            </div>
+
+
+            <div class="mobile-bottom">
+
+              <div class="mobile-total">
+                ${total}
+              </div>
+
+              <button
+                class="view-button"
+                type="button"
+                onclick='verPresupuesto(${JSON.stringify(
+                  String(item.numero || "")
+                )})'
+              >
+                👁 VER
+              </button>
+
+            </div>
+
+          `;
+
+
+          list.appendChild(
+            card
+          );
+
+        }
+      );
+
+
+      list.style.display =
+        "block";
+
+    }
+
+
+    /* =====================================================
+       VER PRESUPUESTO
+       ===================================================== */
+
+    function verPresupuesto(numero) {
+
+      if (!numero) {
+        return;
+      }
+
+
+      const url =
+        PRESUPUESTO_URL +
+        "?ver=" +
+        encodeURIComponent(
+          numero
+        );
+
+
+      window.open(
+        url,
+        "_blank"
+      );
+
+    }
+
+
+    /* =====================================================
+       UTILIDADES
+       ===================================================== */
+
+    function numeroSeguro(valor) {
+
+      if (
+        typeof valor === "number"
+      ) {
+
+        return isFinite(valor)
+          ? valor
+          : 0;
+
+      }
+
+
+      if (
+        valor === null ||
+        valor === undefined ||
+        valor === ""
+      ) {
+
+        return 0;
+
+      }
+
+
+      const texto =
+        String(valor)
+          .trim();
+
+
+      let numero =
+        Number(
+          texto.replace(
+            ",",
+            "."
+          )
+        );
+
+
+      if (
+        isNaN(numero)
+      ) {
+
+        numero =
+          Number(
+            texto
+              .replace(
+                /\./g,
+                ""
+              )
+              .replace(
+                ",",
+                "."
+              )
+          );
+
+      }
+
+
+      return isNaN(numero)
+        ? 0
+        : numero;
+
+    }
+
+
+    function formatearMoneda(valor) {
+
+      return new Intl.NumberFormat(
+        "es-AR",
+        {
+          style: "currency",
+          currency: "ARS",
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2
+        }
+      ).format(
+        numeroSeguro(valor)
+      );
+
+    }
+
+
+    function formatearFechaISO(valor) {
+
+      if (!valor) {
+        return "";
+      }
+
+
+      const partes =
+        String(valor)
+          .split("-");
+
+
+      if (
+        partes.length !== 3
+      ) {
+
+        return String(valor);
+
+      }
+
+
+      return (
+        partes[2] +
+        "/" +
+        partes[1] +
+        "/" +
+        partes[0]
+      );
+
+    }
+
+
+    function escaparHTML(texto) {
+
+      return String(
+        texto === undefined ||
+        texto === null
+          ? ""
+          : texto
+      )
+        .replace(
+          /&/g,
+          "&amp;"
+        )
+        .replace(
+          /</g,
+          "&lt;"
+        )
+        .replace(
+          />/g,
+          "&gt;"
+        )
+        .replace(
+          /"/g,
+          "&quot;"
+        )
+        .replace(
+          /'/g,
+          "&#039;"
+        );
+
+    }
+
+
+    /* =====================================================
+       ESTADOS DE LA INTERFAZ
+       ===================================================== */
+
+    function mostrarLoading() {
+
+      document
+        .getElementById(
+          "loading"
+        )
+        .style.display =
+        "block";
+
+
+      document
+        .getElementById(
+          "tableWrapper"
+        )
+        .style.display =
+        "none";
+
+
+      document
+        .getElementById(
+          "mobileList"
+        )
+        .style.display =
+        "none";
+
+
+      document
+        .getElementById(
+          "empty"
+        )
+        .style.display =
+        "none";
+
+    }
+
+
+    function ocultarLoading() {
+
+      document
+        .getElementById(
+          "loading"
+        )
+        .style.display =
+        "none";
+
+    }
+
+
+    function mostrarEmpty() {
+
+      document
+        .getElementById(
+          "tableWrapper"
+        )
+        .style.display =
+        "none";
+
+
+      document
+        .getElementById(
+          "mobileList"
+        )
+        .style.display =
+        "none";
+
+
+      document
+        .getElementById(
+          "empty"
+        )
+        .style.display =
+        "block";
+
+    }
+
+
+    function ocultarEmpty() {
+
+      document
+        .getElementById(
+          "empty"
+        )
+        .style.display =
+        "none";
+
+    }
+
+
+    function mostrarError(mensaje) {
+
+      const box =
+        document.getElementById(
+          "errorBox"
+        );
+
+
+      box.textContent =
+        mensaje || "Error.";
+
+      box.style.display =
+        "block";
+
+    }
+
+
+    function ocultarError() {
+
+      document
+        .getElementById(
+          "errorBox"
+        )
+        .style.display =
+        "none";
+
+    }
+
+  </script>
+
+</body>
+</html>
