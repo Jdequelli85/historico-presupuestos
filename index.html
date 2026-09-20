@@ -818,6 +818,209 @@
       background: var(--rojo2);
     }
 
+    .action-buttons {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      white-space: nowrap;
+    }
+
+    .edit-button {
+      border: 1px solid var(--gris3);
+      border-radius: 8px;
+      width: 38px;
+      height: 32px;
+      padding: 0;
+      background: white;
+      color: #374151;
+      font-size: 15px;
+      font-weight: 800;
+      line-height: 1;
+    }
+
+    .edit-button:hover {
+      background: var(--gris);
+      border-color: #b9bec7;
+    }
+
+    .estado {
+      transition: background .15s, color .15s;
+    }
+
+    .estado.registrado {
+      background: #ecfdf3;
+      color: #176b2c;
+    }
+
+    .estado.parcial {
+      background: #fff7ed;
+      color: #b45309;
+    }
+
+    .estado.pagado {
+      background: #eff6ff;
+      color: #1d4ed8;
+    }
+
+    /* =====================================================
+       MODAL DE PAGO
+       ===================================================== */
+
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      z-index: 100;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      background: rgba(0, 0, 0, .45);
+    }
+
+    .modal-backdrop.visible {
+      display: flex;
+    }
+
+    .payment-modal {
+      width: min(100%, 460px);
+      background: white;
+      border-radius: 18px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, .20);
+      padding: 24px;
+    }
+
+    .payment-modal h2 {
+      margin: 0;
+      font-size: 20px;
+      font-weight: 800;
+    }
+
+    .payment-number {
+      margin-top: 5px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .payment-summary {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin: 18px 0;
+    }
+
+    .payment-summary-box {
+      padding: 12px;
+      border: 1px solid var(--gris2);
+      border-radius: 10px;
+      background: #fafafa;
+    }
+
+    .payment-summary-label {
+      color: var(--muted);
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+
+    .payment-summary-value {
+      margin-top: 4px;
+      font-size: 15px;
+      font-weight: 800;
+    }
+
+    .payment-field {
+      margin-bottom: 16px;
+    }
+
+    .payment-field label {
+      display: block;
+      margin-bottom: 7px;
+      color: #374151;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .payment-field select,
+    .payment-field input {
+      width: 100%;
+      height: 46px;
+      border: 1px solid var(--gris3);
+      border-radius: 9px;
+      padding: 0 12px;
+      background: white;
+      outline: none;
+    }
+
+    .payment-field select:focus,
+    .payment-field input:focus {
+      border-color: var(--rojo);
+      box-shadow: 0 0 0 3px rgba(190, 0, 15, .08);
+    }
+
+    .payment-field input:disabled {
+      background: var(--gris);
+      color: var(--muted);
+    }
+
+    .payment-saldo {
+      margin-top: 5px;
+      color: var(--rojo);
+      font-size: 16px;
+      font-weight: 800;
+    }
+
+    .payment-error {
+      display: none;
+      margin-bottom: 14px;
+      padding: 10px 12px;
+      border-radius: 9px;
+      background: var(--rojo-suave);
+      color: var(--rojo);
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .payment-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+      margin-top: 20px;
+    }
+
+    .payment-button {
+      min-height: 40px;
+      padding: 0 15px;
+      border-radius: 9px;
+      border: 1px solid var(--gris3);
+      background: white;
+      color: #374151;
+      font-weight: 700;
+    }
+
+    .payment-button.primary {
+      border-color: var(--rojo);
+      background: var(--rojo);
+      color: white;
+    }
+
+    .payment-button.primary:hover {
+      background: var(--rojo2);
+    }
+
+    @media (max-width: 680px) {
+      .payment-modal {
+        padding: 20px;
+      }
+
+      .payment-actions {
+        flex-direction: column-reverse;
+      }
+
+      .payment-button {
+        width: 100%;
+      }
+    }
+
 
     /* =====================================================
        MOBILE CARDS
@@ -1818,6 +2021,123 @@
     </div>
 
   </main>
+
+  <!-- =====================================================
+       MODAL — ACTUALIZAR PAGO
+       ===================================================== -->
+
+  <div
+    id="paymentModal"
+    class="modal-backdrop"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="paymentModalTitle"
+  >
+
+    <div class="payment-modal">
+
+      <h2 id="paymentModalTitle">
+        Actualizar pago
+      </h2>
+
+      <div
+        id="paymentNumber"
+        class="payment-number"
+      ></div>
+
+      <div class="payment-summary">
+
+        <div class="payment-summary-box">
+          <div class="payment-summary-label">
+            Total presupuesto
+          </div>
+          <div
+            id="paymentTotal"
+            class="payment-summary-value"
+          >
+            $ 0,00
+          </div>
+        </div>
+
+        <div class="payment-summary-box">
+          <div class="payment-summary-label">
+            Saldo pendiente
+          </div>
+          <div
+            id="paymentSaldo"
+            class="payment-summary-value"
+          >
+            $ 0,00
+          </div>
+        </div>
+
+      </div>
+
+      <div class="payment-field">
+
+        <label for="paymentEstado">
+          Estado
+        </label>
+
+        <select id="paymentEstado" onchange="cambioEstadoPago()">
+          <option value="Registrado">
+            Registrado
+          </option>
+          <option value="Pago parcial">
+            Pago parcial
+          </option>
+          <option value="Pagado">
+            Pagado
+          </option>
+        </select>
+
+      </div>
+
+      <div class="payment-field">
+
+        <label for="paymentMonto">
+          Monto pagado
+        </label>
+
+        <input
+          id="paymentMonto"
+          type="text"
+          inputmode="decimal"
+          placeholder="0,00"
+          oninput="actualizarSaldoPago()"
+        >
+
+      </div>
+
+      <div
+        id="paymentError"
+        class="payment-error"
+      ></div>
+
+      <div class="payment-actions">
+
+        <button
+          class="payment-button"
+          type="button"
+          onclick="cerrarEditorPago()"
+        >
+          CANCELAR
+        </button>
+
+        <button
+          id="paymentSaveButton"
+          class="payment-button primary"
+          type="button"
+          onclick="guardarPago()"
+        >
+          GUARDAR
+        </button>
+
+      </div>
+
+    </div>
+
+  </div>
 
 
 
@@ -3114,10 +3434,20 @@ const body =
             );
 
 
+          const estadoTexto =
+            String(
+              item.estado ||
+              "Registrado"
+            ).trim();
+
           const estado =
             escaparHTML(
-              item.estado ||
-              "Generado"
+              estadoTexto
+            );
+
+          const estadoClase =
+            obtenerClaseEstado(
+              estadoTexto
             );
 
 
@@ -3169,21 +3499,37 @@ const body =
             </td>
 
             <td>
-              <span class="estado">
+              <span class="estado ${estadoClase}">
                 ${estado}
               </span>
             </td>
 
             <td>
-              <button
-                class="view-button"
-                type="button"
-                onclick='verPresupuesto(${JSON.stringify(
-                  String(item.numero || "")
-                )})'
-              >
-                👁 VER
-              </button>
+              <div class="action-buttons">
+
+                <button
+                  class="view-button"
+                  type="button"
+                  onclick='verPresupuesto(${JSON.stringify(
+                    String(item.numero || "")
+                  )})'
+                >
+                  👁 VER
+                </button>
+
+                <button
+                  class="edit-button"
+                  type="button"
+                  title="Actualizar pago"
+                  aria-label="Actualizar pago"
+                  onclick='abrirEditorPago(${JSON.stringify(
+                    String(item.numero || "")
+                  )})'
+                >
+                  ✏️
+                </button>
+
+              </div>
             </td>
 
           `;
@@ -3264,10 +3610,22 @@ const body =
             );
 
 
+          const estadoTexto =
+            String(
+              item.estado ||
+              "Registrado"
+            ).trim();
+
+
           const estado =
             escaparHTML(
-              item.estado ||
-              "Generado"
+              estadoTexto
+            );
+
+
+          const estadoClase =
+            obtenerClaseEstado(
+              estadoTexto
             );
 
 
@@ -3295,7 +3653,7 @@ const body =
 
               </div>
 
-              <span class="estado">
+              <span class="estado ${estadoClase}">
                 ${estado}
               </span>
 
@@ -3343,15 +3701,31 @@ const body =
                 ${total}
               </div>
 
-              <button
-                class="view-button"
-                type="button"
-                onclick='verPresupuesto(${JSON.stringify(
-                  String(item.numero || "")
-                )})'
-              >
-                👁 VER
-              </button>
+              <div class="action-buttons">
+
+                <button
+                  class="view-button"
+                  type="button"
+                  onclick='verPresupuesto(${JSON.stringify(
+                    String(item.numero || "")
+                  )})'
+                >
+                  👁 VER
+                </button>
+
+                <button
+                  class="edit-button"
+                  type="button"
+                  title="Actualizar pago"
+                  aria-label="Actualizar pago"
+                  onclick='abrirEditorPago(${JSON.stringify(
+                    String(item.numero || "")
+                  )})'
+                >
+                  ✏️
+                </button>
+
+              </div>
 
             </div>
 
@@ -3367,6 +3741,557 @@ const body =
 
 
     }
+
+
+    /* =====================================================
+       ACTUALIZAR PAGO
+       ===================================================== */
+
+    let presupuestoPagoActual = null;
+
+
+    function obtenerClaseEstado(estado) {
+
+      const texto =
+        String(
+          estado || ""
+        ).trim()
+          .toLowerCase();
+
+      if (
+        texto === "pagado"
+      ) {
+        return "pagado";
+      }
+
+      if (
+        texto === "pago parcial"
+      ) {
+        return "parcial";
+      }
+
+      return "registrado";
+
+    }
+
+
+    function buscarPresupuestoHistorico(numero) {
+
+      return historico.find(
+        function(item) {
+          return String(
+            item.numero || ""
+          ).trim() ===
+          String(
+            numero || ""
+          ).trim();
+        }
+      ) || null;
+
+    }
+
+
+    function abrirEditorPago(numero) {
+
+      const item =
+        buscarPresupuestoHistorico(
+          numero
+        );
+
+
+      if (!item) {
+        mostrarError(
+          "No se encontró el presupuesto seleccionado."
+        );
+        return;
+      }
+
+
+      presupuestoPagoActual =
+        item;
+
+
+      document
+        .getElementById(
+          "paymentNumber"
+        )
+        .textContent =
+        String(
+          item.numero || ""
+        );
+
+
+      const total =
+        numeroSeguro(
+          item.total
+        );
+
+
+      document
+        .getElementById(
+          "paymentTotal"
+        )
+        .textContent =
+        formatearMoneda(
+          total
+        );
+
+
+      const estadoActual =
+        String(
+          item.estado ||
+          "Registrado"
+        ).trim();
+
+
+      const montoActual =
+        numeroSeguro(
+          item.montoPagado
+        );
+
+
+      document
+        .getElementById(
+          "paymentEstado"
+        )
+        .value =
+        (
+          estadoActual === "Pagado" ||
+          estadoActual === "Pago parcial"
+        )
+          ? estadoActual
+          : "Registrado";
+
+
+      document
+        .getElementById(
+          "paymentMonto"
+        )
+        .value =
+        montoActual > 0
+          ? montoActual.toFixed(2)
+          : "";
+
+
+      document
+        .getElementById(
+          "paymentError"
+        )
+        .style.display =
+        "none";
+
+
+      document
+        .getElementById(
+          "paymentSaveButton"
+        )
+        .disabled =
+        false;
+
+
+      cambioEstadoPago();
+
+
+      document
+        .getElementById(
+          "paymentModal"
+        )
+        .classList.add(
+          "visible"
+        );
+
+
+      setTimeout(
+        function() {
+          if (
+            document
+              .getElementById(
+                "paymentEstado"
+              )
+              .value === "Pago parcial"
+          ) {
+            document
+              .getElementById(
+                "paymentMonto"
+              )
+              .focus();
+          }
+        },
+        50
+      );
+
+    }
+
+
+    function cerrarEditorPago() {
+
+      presupuestoPagoActual =
+        null;
+
+
+      document
+        .getElementById(
+          "paymentModal"
+        )
+        .classList.remove(
+          "visible"
+        );
+
+    }
+
+
+    function mostrarErrorPago(mensaje) {
+
+      const box =
+        document.getElementById(
+          "paymentError"
+        );
+
+
+      box.textContent =
+        mensaje ||
+        "Revisá los datos del pago.";
+
+
+      box.style.display =
+        "block";
+
+    }
+
+
+    function ocultarErrorPago() {
+
+      document
+        .getElementById(
+          "paymentError"
+        )
+        .style.display =
+        "none";
+
+    }
+
+
+    function cambioEstadoPago() {
+
+      if (
+        !presupuestoPagoActual
+      ) {
+        return;
+      }
+
+
+      const estado =
+        document
+          .getElementById(
+            "paymentEstado"
+          )
+          .value;
+
+
+      const input =
+        document
+          .getElementById(
+            "paymentMonto"
+          );
+
+
+      ocultarErrorPago();
+
+
+      if (
+        estado === "Registrado"
+      ) {
+
+        input.value = "";
+        input.disabled = true;
+
+      } else if (
+        estado === "Pagado"
+      ) {
+
+        input.value =
+          numeroSeguro(
+            presupuestoPagoActual.total
+          ).toFixed(2);
+
+        input.disabled = true;
+
+      } else {
+
+        input.disabled = false;
+
+      }
+
+
+      actualizarSaldoPago();
+
+    }
+
+
+    function actualizarSaldoPago() {
+
+      if (
+        !presupuestoPagoActual
+      ) {
+        return;
+      }
+
+
+      const total =
+        numeroSeguro(
+          presupuestoPagoActual.total
+        );
+
+
+      const estado =
+        document
+          .getElementById(
+            "paymentEstado"
+          )
+          .value;
+
+
+      let monto = 0;
+
+
+      if (
+        estado === "Pagado"
+      ) {
+
+        monto = total;
+
+      } else if (
+        estado === "Pago parcial"
+      ) {
+
+        monto =
+          numeroSeguro(
+            document
+              .getElementById(
+                "paymentMonto"
+              )
+              .value
+          );
+
+      }
+
+
+      const saldo =
+        Math.max(
+          0,
+          total - monto
+        );
+
+
+      document
+        .getElementById(
+          "paymentSaldo"
+        )
+        .textContent =
+        formatearMoneda(
+          saldo
+        );
+
+    }
+
+
+    async function guardarPago() {
+
+      if (
+        !presupuestoPagoActual ||
+        !token
+      ) {
+        return;
+      }
+
+
+      ocultarErrorPago();
+
+
+      const numero =
+        String(
+          presupuestoPagoActual.numero ||
+          ""
+        ).trim();
+
+
+      const total =
+        numeroSeguro(
+          presupuestoPagoActual.total
+        );
+
+
+      const estado =
+        document
+          .getElementById(
+            "paymentEstado"
+          )
+          .value;
+
+
+      let monto = 0;
+
+
+      if (
+        estado === "Pago parcial"
+      ) {
+
+        monto =
+          numeroSeguro(
+            document
+              .getElementById(
+                "paymentMonto"
+              )
+              .value
+          );
+
+
+        if (
+          monto <= 0 ||
+          monto >= total
+        ) {
+
+          mostrarErrorPago(
+            "Para un pago parcial, el monto debe ser mayor a $0 y menor que el total."
+          );
+
+          return;
+
+        }
+
+      } else if (
+        estado === "Pagado"
+      ) {
+
+        monto = total;
+
+      }
+
+
+      const button =
+        document
+          .getElementById(
+            "paymentSaveButton"
+          );
+
+
+      button.disabled = true;
+      button.textContent = "GUARDANDO...";
+
+
+      try {
+
+        const respuesta =
+          await jsonp({
+
+            accion: "actualizarPago",
+
+            numero: numero,
+
+            estado: estado,
+
+            montoPagado: monto,
+
+            token: token
+
+          });
+
+
+        if (
+          !respuesta ||
+          !respuesta.ok
+        ) {
+
+          const mensaje =
+            respuesta?.error ||
+            "No se pudo actualizar el pago.";
+
+
+          if (
+            mensaje
+              .toLowerCase()
+              .includes("sesión")
+          ) {
+
+            cerrarEditorPago();
+            cerrarSesion();
+            mostrarLoginError(
+              mensaje
+            );
+            return;
+
+          }
+
+
+          throw new Error(
+            mensaje
+          );
+
+        }
+
+
+        cerrarEditorPago();
+
+
+        // Recargamos el histórico desde Sheets
+        // para mostrar inmediatamente el nuevo estado.
+        await cargarHistorico();
+
+
+      } catch (error) {
+
+        mostrarErrorPago(
+          error.message ||
+          "No se pudo guardar el pago."
+        );
+
+      } finally {
+
+        button.disabled = false;
+        button.textContent = "GUARDAR";
+
+      }
+
+    }
+
+
+    document.addEventListener(
+      "keydown",
+      function(event) {
+
+        if (
+          event.key === "Escape" &&
+          document
+            .getElementById(
+              "paymentModal"
+            )
+            .classList.contains(
+              "visible"
+            )
+        ) {
+          cerrarEditorPago();
+        }
+
+      }
+    );
+
+
+    document
+      .getElementById(
+        "paymentModal"
+      )
+      .addEventListener(
+        "click",
+        function(event) {
+
+          if (
+            event.target === this
+          ) {
+            cerrarEditorPago();
+          }
+
+        }
+      );
 
 
     /* =====================================================
