@@ -2102,9 +2102,11 @@
         <input
           id="paymentMonto"
           type="text"
-          inputmode="decimal"
-          placeholder="0,00"
-          oninput="actualizarSaldoPago()"
+          inputmode="numeric"
+          autocomplete="off"
+          placeholder="$ 0,00"
+          onkeydown="manejarEntradaMontoPago(event)"
+          onpaste="pegarMontoPago(event)"
         >
 
       </div>
@@ -3863,14 +3865,26 @@ const body =
           : "Registrado";
 
 
-      document
-        .getElementById(
-          "paymentMonto"
-        )
-        .value =
+      const paymentMontoInput =
+        document
+          .getElementById(
+            "paymentMonto"
+          );
+
+
+      // El campo trabaja como una calculadora bancaria: los dígitos
+      // representan centavos. Ej.: 5 => $ 0,05; 500000 => $ 5.000,00.
+      paymentMontoInput.dataset.digitos =
         montoActual > 0
-          ? montoActual.toFixed(2)
+          ? String(
+              Math.round(
+                montoActual * 100
+              )
+            )
           : "";
+
+
+      formatearMontoPagoInput();
 
 
       document
@@ -3971,6 +3985,173 @@ const body =
     }
 
 
+    function formatearMontoPagoInput() {
+
+      const input =
+        document
+          .getElementById(
+            "paymentMonto"
+          );
+
+
+      if (!input) {
+        return;
+      }
+
+
+      const digitos =
+        String(
+          input.dataset.digitos || ""
+        )
+          .replace(/\D/g, "");
+
+
+      input.dataset.digitos = digitos;
+
+
+      // Los dígitos ingresados representan centavos.
+      // 5 = $ 0,05 | 50 = $ 0,50 | 5000 = $ 50,00
+      input.value =
+        digitos
+          ? formatearMoneda(
+              Number(digitos) / 100
+            )
+          : "";
+
+
+      try {
+        input.setSelectionRange(
+          input.value.length,
+          input.value.length
+        );
+      } catch (error) {
+        // Algunos navegadores pueden no permitir mover el cursor en ese momento.
+      }
+
+
+      actualizarSaldoPago();
+
+    }
+
+
+    function manejarEntradaMontoPago(event) {
+
+      const input = event.currentTarget;
+
+
+      if (
+        event.ctrlKey ||
+        event.metaKey ||
+        event.altKey
+      ) {
+        return;
+      }
+
+
+      if (
+        event.key === "Backspace" ||
+        event.key === "Delete"
+      ) {
+
+        event.preventDefault();
+
+        const digitos =
+          String(
+            input.dataset.digitos || ""
+          );
+
+        input.dataset.digitos =
+          digitos.slice(
+            0,
+            -1
+          );
+
+        formatearMontoPagoInput();
+        return;
+
+      }
+
+
+      if (/^[0-9]$/.test(event.key)) {
+
+        event.preventDefault();
+
+        input.dataset.digitos =
+          String(
+            input.dataset.digitos || ""
+          ) + event.key;
+
+        formatearMontoPagoInput();
+        return;
+
+      }
+
+
+      if (
+        event.key === "Tab" ||
+        event.key === "Enter" ||
+        event.key === "Escape"
+      ) {
+        return;
+      }
+
+
+      event.preventDefault();
+
+    }
+
+
+    function pegarMontoPago(event) {
+
+      event.preventDefault();
+
+      const input = event.currentTarget;
+      const texto =
+        event.clipboardData
+          ? event.clipboardData.getData("text")
+          : "";
+
+
+      const textoLimpio =
+        String(texto || "")
+          .trim();
+
+      // Si se pega un importe ya formateado (ej. $ 5.000,00),
+      // conservamos su valor real. Si se pegan solo dígitos,
+      // se comporta igual que la escritura manual: son centavos.
+      const soloDigitos =
+        textoLimpio.replace(/\D/g, "");
+
+      const esImporteFormateado =
+        /[$,.]/.test(textoLimpio);
+
+      if (
+        esImporteFormateado
+      ) {
+
+        const numero =
+          numeroSeguro(textoLimpio);
+
+        input.dataset.digitos =
+          numero > 0
+            ? String(
+                Math.round(numero * 100)
+              )
+            : "";
+
+      } else {
+
+        input.dataset.digitos =
+          soloDigitos;
+
+      }
+
+
+      formatearMontoPagoInput();
+
+    }
+
+
     function cambioEstadoPago() {
 
       if (
@@ -4002,6 +4183,7 @@ const body =
         estado === "Registrado"
       ) {
 
+        input.dataset.digitos = "";
         input.value = "";
         input.disabled = true;
 
@@ -4009,16 +4191,26 @@ const body =
         estado === "Pagado"
       ) {
 
-        input.value =
+        const total =
           numeroSeguro(
             presupuestoPagoActual.total
-          ).toFixed(2);
+          );
 
+        input.dataset.digitos =
+          String(
+            Math.round(
+              total * 100
+            )
+          );
+
+        formatearMontoPagoInput();
         input.disabled = true;
 
       } else {
 
         input.disabled = false;
+
+        formatearMontoPagoInput();
 
       }
 
@@ -4351,7 +4543,8 @@ const body =
 
       const texto =
         String(valor)
-          .trim();
+          .trim()
+          .replace(/[$\s]/g, "");
 
 
       let numero =
