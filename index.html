@@ -654,7 +654,17 @@
     }
 
 
+    /* Estados de carga/vacío: controlan la visibilidad sin romper el responsive */
+    .table-card.loading-state .table-wrapper,
+    .table-card.loading-state .mobile-list,
+    .table-card.empty-state .table-wrapper,
+    .table-card.empty-state .mobile-list {
+      display: none !important;
+    }
+
+
     .table-wrapper {
+      display: block;
       width: 100%;
 
       overflow-x: auto;
@@ -1750,7 +1760,6 @@
         <div
           id="tableWrapper"
           class="table-wrapper"
-          style="display:none;"
         >
 
           <table>
@@ -1810,7 +1819,6 @@
         <div
           id="mobileList"
           class="mobile-list"
-          style="display:none;"
         ></div>
 
 
@@ -3257,8 +3265,8 @@
       );
 
 
-    //  wrapper.style.display =
-    //    "block";
+    wrapper.style.display =
+        "block";
 
     }
 
@@ -3428,9 +3436,6 @@
         }
       );
 
-
-     // list.style.display =
-     //   "block";
 
     }
 
@@ -3618,29 +3623,18 @@
 
     function mostrarLoading() {
 
+      const tableCard =
+        document.querySelector(".table-card");
+
+      tableCard.classList.add("loading-state");
+      tableCard.classList.remove("empty-state");
+
       document
         .getElementById(
           "loading"
         )
         .style.display =
         "block";
-
-
-      document
-        .getElementById(
-          "tableWrapper"
-        )
-        .style.display =
-        "none";
-
-
-      document
-        .getElementById(
-          "mobileList"
-        )
-        .style.display =
-        "none";
-
 
       document
         .getElementById(
@@ -3654,6 +3648,11 @@
 
     function ocultarLoading() {
 
+      const tableCard =
+        document.querySelector(".table-card");
+
+      tableCard.classList.remove("loading-state");
+
       document
         .getElementById(
           "loading"
@@ -3666,21 +3665,11 @@
 
     function mostrarEmpty() {
 
-      document
-        .getElementById(
-          "tableWrapper"
-        )
-        .style.display =
-        "none";
+      const tableCard =
+        document.querySelector(".table-card");
 
-
-      document
-        .getElementById(
-          "mobileList"
-        )
-        .style.display =
-        "none";
-
+      tableCard.classList.add("empty-state");
+      tableCard.classList.remove("loading-state");
 
       document
         .getElementById(
@@ -3693,6 +3682,11 @@
 
 
     function ocultarEmpty() {
+
+      const tableCard =
+        document.querySelector(".table-card");
+
+      tableCard.classList.remove("empty-state");
 
       document
         .getElementById(
