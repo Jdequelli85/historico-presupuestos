@@ -558,8 +558,17 @@
     }
 
 
+    .search-controls {
+      display: grid;
+      grid-template-columns: 180px minmax(0, 1fr);
+      gap: 8px;
+      align-items: center;
+    }
+
+
     .search-wrap {
       position: relative;
+      min-width: 0;
     }
 
 
@@ -1270,6 +1279,11 @@
           1 / -1;
       }
 
+      .search-controls {
+        grid-template-columns: 1fr;
+        gap: 7px;
+      }
+
 
       .refresh-group {
         grid-column:
@@ -1724,23 +1738,38 @@
               class="filter-label"
               for="buscar"
             >
-              Buscar presupuesto
+              Buscar
             </label>
 
-            <div class="search-wrap">
+            <div class="search-controls">
 
-              <span class="search-icon">
-                🔎
-              </span>
-
-              <input
-                id="buscar"
-                class="filter-input search-input"
-                type="search"
-                placeholder="Ej.: 41, 000041..."
-                autocomplete="off"
-                oninput="aplicarFiltros()"
+              <select
+                id="filtroBusqueda"
+                class="filter-select"
+                onchange="cambioFiltroBusqueda()"
+                aria-label="Tipo de búsqueda"
               >
+                <option value="numero">Nº presupuesto</option>
+                <option value="cliente">Nombre / cliente</option>
+                <option value="telefono">Teléfono</option>
+              </select>
+
+              <div class="search-wrap">
+
+                <span class="search-icon">
+                  🔎
+                </span>
+
+                <input
+                  id="buscar"
+                  class="filter-input search-input"
+                  type="search"
+                  placeholder="Ej.: 41, 000041..."
+                  autocomplete="off"
+                  oninput="aplicarFiltros()"
+                >
+
+              </div>
 
             </div>
 
@@ -2010,7 +2039,7 @@
           </div>
 
           <div class="empty-text">
-            Probá cambiar el número de presupuesto o los filtros.
+            Probá cambiar el criterio de búsqueda o los filtros.
           </div>
 
         </div>
@@ -3031,6 +3060,48 @@
 
 
     /* =====================================================
+       BÚSQUEDA
+       ===================================================== */
+
+    function normalizarTexto(valor) {
+
+      return String(valor || "")
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "");
+
+    }
+
+
+    function cambioFiltroBusqueda() {
+
+      const tipo =
+        document
+          .getElementById("filtroBusqueda")
+          .value;
+
+      const input =
+        document
+          .getElementById("buscar");
+
+      const placeholders = {
+        numero: "Ej.: 41, 000041...",
+        cliente: "Ej.: Juan, María, Pérez...",
+        telefono: "Ej.: 299 512 3456..."
+      };
+
+      input.placeholder =
+        placeholders[tipo] ||
+        placeholders.numero;
+
+      input.value = "";
+
+      aplicarFiltros();
+
+    }
+
+
+    /* =====================================================
        APLICAR FILTROS
        ===================================================== */
 
@@ -3051,8 +3122,13 @@
         document
           .getElementById("buscar")
           .value
-          .trim()
-          .toLowerCase();
+          .trim();
+
+
+      const tipoBusqueda =
+        document
+          .getElementById("filtroBusqueda")
+          .value;
 
 
       const vendedorFiltro =
@@ -3076,47 +3152,83 @@
 
             if (texto) {
 
-              const numero =
-                String(
-                  item.numero || ""
-                )
-                .toLowerCase();
+              let coincide = false;
 
+              if (tipoBusqueda === "numero") {
 
-              const numeroSolo =
-                numero.replace(
-                  /\D/g,
-                  ""
-                );
+                const numero =
+                  String(
+                    item.numero || ""
+                  ).toLowerCase();
 
+                const numeroSolo =
+                  numero.replace(
+                    /\D/g,
+                    ""
+                  );
 
-              const textoSolo =
-                texto.replace(
-                  /\D/g,
-                  ""
-                );
+                const textoLower =
+                  texto.toLowerCase();
 
+                const textoSolo =
+                  textoLower.replace(
+                    /\D/g,
+                    ""
+                  );
 
-              const coincideNumero =
-                numero.includes(
-                  texto
-                );
+                const coincideNumero =
+                  numero.includes(
+                    textoLower
+                  );
 
+                const coincideNumerico =
+                  textoSolo &&
+                  numeroSolo.includes(
+                    textoSolo
+                  );
 
-              const coincideNumerico =
-                textoSolo &&
-                numeroSolo.includes(
-                  textoSolo
-                );
+                coincide =
+                  coincideNumero ||
+                  coincideNumerico;
 
+              } else if (tipoBusqueda === "cliente") {
 
-              if (
-                !coincideNumero &&
-                !coincideNumerico
-              ) {
+                const cliente =
+                  normalizarTexto(
+                    item.cliente || ""
+                  );
 
+                coincide =
+                  cliente.includes(
+                    normalizarTexto(texto)
+                  );
+
+              } else if (tipoBusqueda === "telefono") {
+
+                const telefono =
+                  String(
+                    item.telefono || ""
+                  ).replace(
+                    /\D/g,
+                    ""
+                  );
+
+                const textoTelefono =
+                  texto.replace(
+                    /\D/g,
+                    ""
+                  );
+
+                coincide =
+                  Boolean(textoTelefono) &&
+                  telefono.includes(
+                    textoTelefono
+                  );
+
+              }
+
+              if (!coincide) {
                 return false;
-
               }
 
             }
