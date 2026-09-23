@@ -1032,6 +1032,196 @@
 
 
     /* =====================================================
+       CALENDARIO DE ENTREGAS
+       ===================================================== */
+
+    .calendar-wrap {
+      position: relative;
+      flex: 0 0 auto;
+    }
+
+    .calendar-button {
+      width: 42px;
+      height: 42px;
+      padding: 0;
+      border: 1px solid var(--gris2);
+      border-radius: 9px;
+      background: white;
+      color: #374151;
+      font-size: 19px;
+      line-height: 1;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .calendar-button:hover,
+    .calendar-button.active {
+      background: var(--rojo-suave);
+      border-color: rgba(190, 0, 15, .22);
+    }
+
+    .delivery-calendar {
+      position: absolute;
+      top: calc(100% + 9px);
+      right: 0;
+      z-index: 80;
+      width: 310px;
+      padding: 15px;
+      background: white;
+      border: 1px solid var(--gris2);
+      border-radius: 14px;
+      box-shadow: 0 18px 45px rgba(0,0,0,.16);
+      display: none;
+    }
+
+    .delivery-calendar.visible {
+      display: block;
+    }
+
+    .calendar-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+
+    .calendar-title {
+      font-size: 14px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: .03em;
+      text-align: center;
+      flex: 1;
+    }
+
+    .calendar-nav {
+      width: 30px;
+      height: 30px;
+      border: 1px solid var(--gris2);
+      border-radius: 7px;
+      background: white;
+      color: #374151;
+      font-weight: 800;
+    }
+
+    .calendar-nav:hover {
+      background: var(--gris);
+    }
+
+    .calendar-weekdays,
+    .calendar-days {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 3px;
+    }
+
+    .calendar-weekday {
+      padding: 4px 0;
+      color: var(--muted);
+      font-size: 9px;
+      font-weight: 800;
+      text-align: center;
+      text-transform: uppercase;
+    }
+
+    .calendar-day {
+      position: relative;
+      min-height: 34px;
+      border: 0;
+      border-radius: 8px;
+      background: white;
+      color: #374151;
+      font-size: 11px;
+      font-weight: 600;
+    }
+
+    .calendar-day:hover {
+      background: var(--gris);
+    }
+
+    .calendar-day.other-month {
+      color: #c3c7ce;
+    }
+
+    .calendar-day.today {
+      box-shadow: inset 0 0 0 1px var(--gris3);
+    }
+
+    .calendar-day.has-delivery {
+      background: var(--rojo-suave);
+      color: var(--rojo);
+      font-weight: 800;
+    }
+
+    .calendar-day .delivery-dot {
+      position: absolute;
+      left: 50%;
+      bottom: 4px;
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: var(--rojo);
+      transform: translateX(-50%);
+    }
+
+    .calendar-tooltip {
+      position: fixed;
+      z-index: 200;
+      display: none;
+      width: max-content;
+      max-width: 250px;
+      padding: 9px 11px;
+      border-radius: 9px;
+      background: #222;
+      color: white;
+      font-size: 11px;
+      line-height: 1.45;
+      box-shadow: 0 8px 25px rgba(0,0,0,.18);
+      pointer-events: none;
+    }
+
+    .calendar-tooltip.visible {
+      display: block;
+    }
+
+    .calendar-tooltip-title {
+      margin-bottom: 4px;
+      font-weight: 800;
+    }
+
+    .calendar-tooltip-item {
+      white-space: nowrap;
+    }
+
+    .calendar-empty {
+      margin-top: 10px;
+      padding-top: 10px;
+      border-top: 1px solid var(--gris2);
+      color: var(--muted);
+      font-size: 11px;
+      text-align: center;
+    }
+
+    @media (max-width: 680px) {
+      .calendar-wrap {
+        position: static;
+      }
+
+      .delivery-calendar {
+        position: fixed;
+        top: 70px;
+        right: 12px;
+        left: 12px;
+        width: auto;
+        max-width: 360px;
+        margin-left: auto;
+      }
+    }
+
+
+    /* =====================================================
        MOBILE CARDS
        ===================================================== */
 
@@ -1632,6 +1822,46 @@
 
         <div class="topbar-actions">
 
+          <div class="calendar-wrap">
+
+            <button
+              id="calendarButton"
+              class="calendar-button"
+              type="button"
+              title="Calendario de entregas"
+              aria-label="Calendario de entregas"
+              aria-expanded="false"
+              onclick="alternarCalendarioEntregas()"
+            >
+              📅
+            </button>
+
+            <div
+              id="deliveryCalendar"
+              class="delivery-calendar"
+              role="dialog"
+              aria-label="Calendario de entregas"
+            >
+              <div class="calendar-head">
+                <button class="calendar-nav" type="button" onclick="cambiarMesCalendario(-1)" aria-label="Mes anterior">‹</button>
+                <div id="calendarTitle" class="calendar-title"></div>
+                <button class="calendar-nav" type="button" onclick="cambiarMesCalendario(1)" aria-label="Mes siguiente">›</button>
+              </div>
+              <div class="calendar-weekdays">
+                <div class="calendar-weekday">Lu</div>
+                <div class="calendar-weekday">Ma</div>
+                <div class="calendar-weekday">Mi</div>
+                <div class="calendar-weekday">Ju</div>
+                <div class="calendar-weekday">Vi</div>
+                <div class="calendar-weekday">Sá</div>
+                <div class="calendar-weekday">Do</div>
+              </div>
+              <div id="calendarDays" class="calendar-days"></div>
+              <div id="calendarEmpty" class="calendar-empty">No hay entregas asignadas para este mes.</div>
+            </div>
+
+          </div>
+
           <button
             class="top-button refresh-top"
             type="button"
@@ -2172,6 +2402,9 @@
 
 
 
+  <div id="calendarTooltip" class="calendar-tooltip"></div>
+
+
   <script>
 
     /* =====================================================
@@ -2204,6 +2437,13 @@
     let historico = [];
 
     let historicoFiltrado = [];
+
+    // Mes actualmente mostrado en el calendario.
+    let calendarioMes = new Date(
+      new Date().getFullYear(),
+      new Date().getMonth(),
+      1
+    );
 
 
     /* =====================================================
@@ -2659,6 +2899,8 @@
 
         prepararVendedores();
 
+        renderizarCalendarioEntregas();
+
         aplicarFiltros();
 
 
@@ -2674,6 +2916,231 @@
 
       }
 
+    }
+
+
+    /* =====================================================
+       CALENDARIO DE ENTREGAS
+       ===================================================== */
+
+    function obtenerEntregasCalendario() {
+
+      const mapa = {};
+
+      if (!Array.isArray(historico)) {
+        return mapa;
+      }
+
+      historico.forEach(function(item) {
+
+        // Preparado para la futura columna/campo de entrega.
+        // No usamos la fecha del presupuesto como fecha de entrega.
+        const fecha = String(
+          item.fechaEntregaISO ||
+          item.fechaEntrega ||
+          ""
+        ).trim();
+
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(fecha)) {
+          return;
+        }
+
+        if (!mapa[fecha]) {
+          mapa[fecha] = [];
+        }
+
+        const numero = String(item.numero || "").trim();
+
+        if (numero && !mapa[fecha].includes(numero)) {
+          mapa[fecha].push(numero);
+        }
+
+      });
+
+      return mapa;
+    }
+
+
+    function alternarCalendarioEntregas() {
+
+      const calendario = document.getElementById("deliveryCalendar");
+      const boton = document.getElementById("calendarButton");
+
+      if (!calendario || !boton) return;
+
+      const visible = calendario.classList.toggle("visible");
+      boton.classList.toggle("active", visible);
+      boton.setAttribute("aria-expanded", visible ? "true" : "false");
+
+      if (visible) {
+        calendarioMes = new Date(
+          new Date().getFullYear(),
+          new Date().getMonth(),
+          1
+        );
+        renderizarCalendarioEntregas();
+      } else {
+        ocultarTooltipCalendario();
+      }
+    }
+
+
+    function cambiarMesCalendario(diferencia) {
+
+      calendarioMes = new Date(
+        calendarioMes.getFullYear(),
+        calendarioMes.getMonth() + diferencia,
+        1
+      );
+
+      renderizarCalendarioEntregas();
+    }
+
+
+    function renderizarCalendarioEntregas() {
+
+      const days = document.getElementById("calendarDays");
+      const title = document.getElementById("calendarTitle");
+      const empty = document.getElementById("calendarEmpty");
+
+      if (!days || !title || !empty) return;
+
+      const año = calendarioMes.getFullYear();
+      const mes = calendarioMes.getMonth();
+
+      title.textContent = new Intl.DateTimeFormat("es-AR", {
+        month: "long",
+        year: "numeric"
+      }).format(calendarioMes);
+
+      const entregas = obtenerEntregasCalendario();
+      days.innerHTML = "";
+
+      // JS: domingo=0. Convertimos a lunes=0.
+      const primerDia = new Date(año, mes, 1);
+      const desplazamiento = (primerDia.getDay() + 6) % 7;
+      const diasMes = new Date(año, mes + 1, 0).getDate();
+      const diasAnterior = new Date(año, mes, 0).getDate();
+
+      const hoy = new Date();
+      const hoyISO = obtenerFechaISODesdeDate(
+        new Date(hoy.getFullYear(), hoy.getMonth(), hoy.getDate())
+      );
+
+      let diasConEntrega = 0;
+
+      for (let i = 0; i < 42; i++) {
+
+        const numeroCelda = i - desplazamiento + 1;
+        let fecha;
+        let numeroDia;
+        let otroMes = false;
+
+        if (numeroCelda < 1) {
+          numeroDia = diasAnterior + numeroCelda;
+          fecha = new Date(año, mes - 1, numeroDia);
+          otroMes = true;
+        } else if (numeroCelda > diasMes) {
+          numeroDia = numeroCelda - diasMes;
+          fecha = new Date(año, mes + 1, numeroDia);
+          otroMes = true;
+        } else {
+          numeroDia = numeroCelda;
+          fecha = new Date(año, mes, numeroDia);
+        }
+
+        const fechaISO = obtenerFechaISODesdeDate(fecha);
+        const numeros = entregas[fechaISO] || [];
+
+        if (!otroMes && numeros.length) {
+          diasConEntrega++;
+        }
+
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "calendar-day" +
+          (otroMes ? " other-month" : "") +
+          (fechaISO === hoyISO ? " today" : "") +
+          (numeros.length ? " has-delivery" : "");
+        button.textContent = numeroDia;
+        button.dataset.fecha = fechaISO;
+
+        if (numeros.length) {
+          const dot = document.createElement("span");
+          dot.className = "delivery-dot";
+          dot.setAttribute("aria-hidden", "true");
+          button.appendChild(dot);
+
+          button.addEventListener("mouseenter", function(event) {
+            mostrarTooltipCalendario(event, fechaISO, numeros);
+          });
+
+          button.addEventListener("mousemove", moverTooltipCalendario);
+          button.addEventListener("mouseleave", ocultarTooltipCalendario);
+          button.addEventListener("focus", function(event) {
+            mostrarTooltipCalendario(event, fechaISO, numeros);
+          });
+          button.addEventListener("blur", ocultarTooltipCalendario);
+        }
+
+        days.appendChild(button);
+      }
+
+      empty.style.display = diasConEntrega ? "none" : "block";
+    }
+
+
+    function mostrarTooltipCalendario(event, fechaISO, numeros) {
+
+      const tooltip = document.getElementById("calendarTooltip");
+      if (!tooltip || !numeros.length) return;
+
+      const fecha = formatearFechaISO(fechaISO);
+      const items = numeros.map(function(numero) {
+        return '<div class="calendar-tooltip-item">📦 Presupuesto <strong>' +
+          escaparHTML(numero) +
+          '</strong></div>';
+      }).join("");
+
+      tooltip.innerHTML =
+        '<div class="calendar-tooltip-title">Entrega · ' +
+        escaparHTML(fecha) +
+        '</div>' + items;
+
+      tooltip.classList.add("visible");
+      moverTooltipCalendario(event);
+    }
+
+
+    function moverTooltipCalendario(event) {
+
+      const tooltip = document.getElementById("calendarTooltip");
+      if (!tooltip || !tooltip.classList.contains("visible")) return;
+
+      const margen = 12;
+      const rect = tooltip.getBoundingClientRect();
+      let left = event.clientX + 14;
+      let top = event.clientY + 14;
+
+      if (left + rect.width > window.innerWidth - margen) {
+        left = window.innerWidth - rect.width - margen;
+      }
+
+      if (top + rect.height > window.innerHeight - margen) {
+        top = event.clientY - rect.height - 14;
+      }
+
+      tooltip.style.left = Math.max(margen, left) + "px";
+      tooltip.style.top = Math.max(margen, top) + "px";
+    }
+
+
+    function ocultarTooltipCalendario() {
+
+      const tooltip = document.getElementById("calendarTooltip");
+      if (tooltip) {
+        tooltip.classList.remove("visible");
+      }
     }
 
 
@@ -4596,6 +5063,22 @@ const body =
 
         }
       );
+
+
+    document.addEventListener("click", function(event) {
+
+      const wrap = event.target.closest(".calendar-wrap");
+      if (!wrap) {
+        const calendario = document.getElementById("deliveryCalendar");
+        const boton = document.getElementById("calendarButton");
+        if (calendario && calendario.classList.contains("visible")) {
+          calendario.classList.remove("visible");
+          boton?.classList.remove("active");
+          boton?.setAttribute("aria-expanded", "false");
+          ocultarTooltipCalendario();
+        }
+      }
+    });
 
 
     /* =====================================================
