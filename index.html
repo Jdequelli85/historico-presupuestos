@@ -1671,7 +1671,16 @@
 
     }
 
-  </style>
+  
+.delivery-modal{max-width:760px;width:calc(100% - 32px);max-height:90vh;overflow:auto}
+.delivery-summary-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:12px 0}
+.delivery-status-box{margin:10px 0;padding:10px 12px;border-radius:10px;background:#f1f5f7;font-weight:700}
+.delivery-lines{display:grid;gap:7px;margin:12px 0;max-height:190px;overflow:auto}
+.delivery-line{display:grid;grid-template-columns:1.8fr .7fr .7fr .7fr;gap:8px;align-items:center;padding:8px 10px;border:1px solid #dde4e7;border-radius:8px;font-size:13px}
+.delivery-line span{text-align:right}.delivery-line-head{font-weight:700;background:#f7f8f9}.delivery-pending{font-weight:700}
+.entrega-mini{display:block;margin-top:4px;font-size:11px;font-weight:700}.entrega-pendiente{opacity:.7}.entrega-parcial{font-weight:800}.entrega-todo{font-weight:900}.delivery-button{font-size:15px}
+@media(max-width:640px){.delivery-summary-grid{grid-template-columns:1fr}.delivery-line{grid-template-columns:1fr 1fr}.delivery-line span{text-align:left}}
+</style>
 </head>
 
 
@@ -2402,6 +2411,26 @@
 
 
 
+  <div id="deliveryModal" class="modal-overlay">
+    <div class="payment-modal delivery-modal">
+      <h2>Gestión de entrega</h2>
+      <div id="deliveryNumber" class="payment-number"></div>
+      <div class="delivery-summary-grid">
+        <div class="payment-summary-box"><div class="payment-summary-label">Comprado</div><div id="deliveryTotal" class="payment-summary-value">0</div></div>
+        <div class="payment-summary-box"><div class="payment-summary-label">Retirado / entregado</div><div id="deliveryDone" class="payment-summary-value">0</div></div>
+        <div class="payment-summary-box"><div class="payment-summary-label">Pendiente</div><div id="deliveryPending" class="payment-summary-value">0</div></div>
+      </div>
+      <div id="deliveryStatusBox" class="delivery-status-box">Estado: Pendiente</div>
+      <div id="deliveryLines" class="delivery-lines"></div>
+      <div class="payment-field"><label for="deliveryProduct">Producto</label><select id="deliveryProduct"></select></div>
+      <div class="payment-field"><label for="deliveryQuantity">Cantidad a registrar</label><input id="deliveryQuantity" type="number" min="0" step="0.01" inputmode="decimal" placeholder="0"></div>
+      <div class="payment-field"><label for="deliveryType">Tipo de movimiento</label><select id="deliveryType"><option value="Retiro">Retiro</option><option value="Entrega">Entrega</option><option value="Acopio">Acopio</option></select></div>
+      <div class="payment-field"><label for="deliveryObservation">Observaciones</label><input id="deliveryObservation" type="text" maxlength="200" placeholder="Opcional"></div>
+      <div id="deliveryError" class="payment-error"></div>
+      <div class="payment-actions"><button class="payment-button" type="button" onclick="cerrarEditorEntrega()">CANCELAR</button><button id="deliverySaveButton" class="payment-button primary" type="button" onclick="guardarMovimientoEntrega()">REGISTRAR</button></div>
+    </div>
+  </div>
+
   <div id="calendarTooltip" class="calendar-tooltip"></div>
 
 
@@ -2895,6 +2924,13 @@
           )
             ? respuesta.presupuestos
             : [];
+
+        historico.forEach(function(item) {
+          item.entregaEstado = item.entregaEstado || "Pendiente";
+          item.entregaComprado = Number(item.entregaComprado || 0);
+          item.entregaRealizado = Number(item.entregaRealizado || 0);
+          item.entregaPendiente = Number(item.entregaPendiente || 0);
+        });
 
 
         prepararVendedores();
@@ -4083,6 +4119,7 @@ const body =
               <span class="estado ${estadoClase}">
                 ${estado}
               </span>
+              <span class="entrega-mini ${obtenerClaseEntrega(item.entregaEstado)}">📦 ${escaparHTML(item.entregaEstado || "Pendiente")}</span>
             </td>
 
             <td>
@@ -4109,6 +4146,8 @@ const body =
                 >
                   ✏️
                 </button>
+
+                <button class="edit-button delivery-button" type="button" title="Gestionar entrega" aria-label="Gestionar entrega" onclick='abrirEditorEntrega(${JSON.stringify(String(item.numero || ""))})'>📦</button>
 
               </div>
             </td>
@@ -4237,6 +4276,7 @@ const body =
               <span class="estado ${estadoClase}">
                 ${estado}
               </span>
+              <span class="entrega-mini ${obtenerClaseEntrega(item.entregaEstado)}">📦 ${escaparHTML(item.entregaEstado || "Pendiente")}</span>
 
             </div>
 
@@ -4306,6 +4346,8 @@ const body =
                   ✏️
                 </button>
 
+                <button class="edit-button delivery-button" type="button" title="Gestionar entrega" aria-label="Gestionar entrega" onclick='abrirEditorEntrega(${JSON.stringify(String(item.numero || ""))})'>📦</button>
+
               </div>
 
             </div>
@@ -4325,10 +4367,88 @@ const body =
 
 
     /* =====================================================
+       GESTIÓN DE ENTREGA
+       ===================================================== */
+
+    let presupuestoEntregaActual = null;
+    let detalleEntregaActual = null;
+
+    function formatearCantidadEntrega(valor) {
+      const n = Number(valor || 0);
+      return isFinite(n) ? n.toLocaleString("es-AR", {maximumFractionDigits:2}) : "0";
+    }
+
+    async function abrirEditorEntrega(numero) {
+      const item = buscarPresupuestoHistorico(numero);
+      if (!item) { mostrarError("No se encontró el presupuesto seleccionado."); return; }
+      presupuestoEntregaActual=item;
+      document.getElementById("deliveryNumber").textContent=String(item.numero||"");
+      document.getElementById("deliveryModal").classList.add("visible");
+      document.getElementById("deliveryError").style.display="none";
+      document.getElementById("deliveryLines").innerHTML="Cargando...";
+      try {
+        const r=await jsonp({accion:"detalleEntrega",numero:String(item.numero||""),token:token});
+        if(!r||!r.ok) throw new Error(r?.error||"No se pudo cargar la entrega.");
+        detalleEntregaActual=r; actualizarResumenEntregaEnItem(item,r); renderizarDetalleEntrega(r);
+      } catch(e) { document.getElementById("deliveryLines").innerHTML=""; mostrarErrorEntrega(e.message||"No se pudo cargar la entrega."); }
+    }
+
+    function renderizarDetalleEntrega(detalle) {
+      const resumen = detalle.resumenMixto ? "—" : null;
+      document.getElementById("deliveryTotal").textContent=resumen || formatearCantidadEntrega(detalle.totalComprado);
+      document.getElementById("deliveryDone").textContent=resumen || formatearCantidadEntrega(detalle.totalRealizado);
+      document.getElementById("deliveryPending").textContent=resumen || formatearCantidadEntrega(detalle.totalPendiente);
+      document.getElementById("deliveryStatusBox").textContent="Estado: "+(detalle.estado||"Pendiente")+(detalle.resumenMixto?" · ver cantidades por producto":"");
+      const lines=document.getElementById("deliveryLines"), productos=Array.isArray(detalle.productos)?detalle.productos:[]; lines.innerHTML="";
+      if(!productos.length){lines.innerHTML='<div class="delivery-line">No hay productos comerciales registrados para este presupuesto.</div>';}
+      else { const head=document.createElement("div"); head.className="delivery-line delivery-line-head"; head.innerHTML='<strong>Producto</strong><span>Comprado</span><span>Realizado</span><span>Pendiente</span>'; lines.appendChild(head); productos.forEach(p=>{const row=document.createElement("div");row.className="delivery-line";row.innerHTML='<strong>'+escaparHTML(p.producto||p.id||"Producto")+'<br><small>'+escaparHTML(p.unidad||"")+'</small></strong><span>'+formatearCantidadEntrega(p.comprado)+'</span><span>'+formatearCantidadEntrega(p.realizado)+'</span><span class="delivery-pending">'+formatearCantidadEntrega(p.pendiente)+'</span>';lines.appendChild(row);}); }
+      const select=document.getElementById("deliveryProduct"); select.innerHTML="";
+      productos.filter(p=>Number(p.pendiente||0)>0).forEach((p,index)=>{const o=document.createElement("option");o.value=String(index);o.textContent=(p.producto||p.id||"Producto")+" — pendiente: "+formatearCantidadEntrega(p.pendiente)+" "+(p.unidad||"");select.appendChild(o);});
+      const hayPendientes=select.options.length>0;
+      if(!hayPendientes){const o=document.createElement("option");o.value="";o.textContent="No hay cantidades pendientes";select.appendChild(o);}
+      document.getElementById("deliveryQuantity").disabled=!hayPendientes; document.getElementById("deliverySaveButton").disabled=!hayPendientes;
+    }
+
+    function cerrarEditorEntrega(){presupuestoEntregaActual=null;detalleEntregaActual=null;document.getElementById("deliveryModal").classList.remove("visible");}
+    function mostrarErrorEntrega(mensaje){const box=document.getElementById("deliveryError");box.textContent=mensaje||"Revisá los datos.";box.style.display="block";}
+
+    async function guardarMovimientoEntrega(){
+      if(!presupuestoEntregaActual||!detalleEntregaActual||!token)return;
+      const idx=Number(document.getElementById("deliveryProduct").value); const disponibles=(detalleEntregaActual.productos||[]).filter(p=>Number(p.pendiente||0)>0); const p=disponibles[idx]; const cantidad=Number(document.getElementById("deliveryQuantity").value||0);
+      if(!p){mostrarErrorEntrega("Seleccioná un producto con cantidad pendiente.");return;}
+      if(!isFinite(cantidad)||cantidad<=0){mostrarErrorEntrega("Ingresá una cantidad mayor a 0.");return;}
+      if(cantidad>Number(p.pendiente||0)+1e-9){mostrarErrorEntrega("La cantidad supera lo pendiente de este producto.");return;}
+      const button=document.getElementById("deliverySaveButton");button.disabled=true;button.textContent="GUARDANDO...";
+      try{
+        const r=await jsonp({accion:"registrarMovimientoEntrega",numero:String(presupuestoEntregaActual.numero||""),idProducto:String(p.id||""),producto:String(p.producto||""),unidad:String(p.unidad||""),cantidad:String(cantidad),tipo:String(document.getElementById("deliveryType").value||"Retiro"),observaciones:String(document.getElementById("deliveryObservation").value||""),token:token});
+        if(!r||!r.ok)throw new Error(r?.error||"No se pudo registrar el movimiento.");
+        detalleEntregaActual=r;actualizarResumenEntregaEnItem(presupuestoEntregaActual,r);renderizarDetalleEntrega(r);document.getElementById("deliveryQuantity").value="";document.getElementById("deliveryObservation").value="";aplicarFiltros();
+      }catch(e){mostrarErrorEntrega(e.message||"No se pudo registrar el movimiento.");}
+      finally{button.disabled=false;button.textContent="REGISTRAR";if(!(detalleEntregaActual?.productos||[]).some(p=>Number(p.pendiente||0)>0))button.disabled=true;}
+    }
+
+
+    /* =====================================================
        ACTUALIZAR PAGO
        ===================================================== */
 
     let presupuestoPagoActual = null;
+
+
+    function obtenerClaseEntrega(estado) {
+      const texto = String(estado || "Pendiente").trim().toLowerCase();
+      if (texto === "todo") return "entrega-todo";
+      if (texto === "parcial") return "entrega-parcial";
+      return "entrega-pendiente";
+    }
+
+    function actualizarResumenEntregaEnItem(item, detalle) {
+      if (!item || !detalle) return;
+      item.entregaEstado = detalle.estado || "Pendiente";
+      item.entregaComprado = Number(detalle.totalComprado || 0);
+      item.entregaRealizado = Number(detalle.totalRealizado || 0);
+      item.entregaPendiente = Number(detalle.totalPendiente || 0);
+    }
 
 
     function obtenerClaseEstado(estado) {
