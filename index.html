@@ -2466,8 +2466,10 @@
       "https://raw.githubusercontent.com/Jdequelli85/qr-corralon/main/logo.png";
 
 
+    // Se conserva por compatibilidad con otras referencias,
+    // pero VER utiliza directamente PPTO.
     const PRESUPUESTO_URL =
-      "https://presupuesto.gytsrl.com/";
+      "https://ppto.gytsrl.com/";
 
 
     /* =====================================================
@@ -5468,17 +5470,19 @@ const body =
 
 
       const url =
-        PRESUPUESTO_URL +
-        "?ver=" +
+        "https://ppto.gytsrl.com/?ver=" +
         encodeURIComponent(
           numero
         );
 
 
-      window.open(
-        url,
-        "_blank"
-      );
+      // Navegamos en el mismo contexto principal.
+      // Si Gestión está dentro del iframe de PPTO, esto
+      // lleva la ventana principal a PPTO y conserva su
+      // sessionStorage (incluido el token ya autenticado).
+      // Si Histórico se abre directamente, simplemente
+      // navega a PPTO en la misma pestaña.
+      window.top.location.href = url;
 
     }
 
