@@ -1678,7 +1678,7 @@
 .delivery-lines{display:grid;gap:7px;margin:12px 0;max-height:190px;overflow:auto}
 .delivery-line{display:grid;grid-template-columns:1.8fr .7fr .7fr .7fr;gap:8px;align-items:center;padding:8px 10px;border:1px solid #dde4e7;border-radius:8px;font-size:13px}
 .delivery-line span{text-align:right}.delivery-line-head{font-weight:700;background:#f7f8f9}.delivery-pending{font-weight:700}
-.entrega-mini{display:block;margin-top:4px;font-size:11px;font-weight:700}.entrega-pendiente{opacity:.7}.entrega-parcial{font-weight:800}.entrega-todo{font-weight:900}.delivery-button{font-size:15px}
+.entrega-mini{display:block;margin-top:4px;font-size:11px;font-weight:700}.entrega-pendiente{opacity:.7}.entrega-parcial{font-weight:800}.entrega-todo{font-weight:900}.delivery-button{font-size:15px}.delivery-type-help{margin-top:6px;font-size:12px;line-height:1.35;color:#66757b}
 @media(max-width:640px){.delivery-summary-grid{grid-template-columns:1fr}.delivery-line{grid-template-columns:1fr 1fr}.delivery-line span{text-align:left}}
 </style>
 </head>
@@ -2424,7 +2424,14 @@
       <div id="deliveryLines" class="delivery-lines"></div>
       <div class="payment-field"><label for="deliveryProduct">Producto</label><select id="deliveryProduct"></select></div>
       <div class="payment-field"><label for="deliveryQuantity">Cantidad a registrar</label><input id="deliveryQuantity" type="number" min="0" step="0.01" inputmode="decimal" placeholder="0"></div>
-      <div class="payment-field"><label for="deliveryType">Tipo de movimiento</label><select id="deliveryType"><option value="Retiro">Retiro</option><option value="Entrega">Entrega</option><option value="Acopio">Acopio</option></select></div>
+      <div class="payment-field">
+        <label for="deliveryType">¿Qué ocurrió con la mercadería?</label>
+        <select id="deliveryType">
+          <option value="Retiro">🏪 Retiro por cliente</option>
+          <option value="Acopio">📦 Acopio</option>
+        </select>
+        <div id="deliveryTypeHelp" class="delivery-type-help"></div>
+      </div>
       <div class="payment-field"><label for="deliveryObservation">Observaciones</label><input id="deliveryObservation" type="text" maxlength="200" placeholder="Opcional"></div>
       <div id="deliveryError" class="payment-error"></div>
       <div class="payment-actions"><button class="payment-button" type="button" onclick="cerrarEditorEntrega()">CANCELAR</button><button id="deliverySaveButton" class="payment-button primary" type="button" onclick="guardarMovimientoEntrega()">REGISTRAR</button></div>
@@ -4407,9 +4414,47 @@ const body =
       const hayPendientes=select.options.length>0;
       if(!hayPendientes){const o=document.createElement("option");o.value="";o.textContent="No hay cantidades pendientes";select.appendChild(o);}
       document.getElementById("deliveryQuantity").disabled=!hayPendientes; document.getElementById("deliverySaveButton").disabled=!hayPendientes;
+      actualizarTiposMovimientoEntrega();
+    }
+
+    function esProductoFleteEntrega(p) {
+      return String(p?.id || "").trim().toUpperCase().startsWith("ENV-");
+    }
+
+    function actualizarTiposMovimientoEntrega() {
+      const selectProducto = document.getElementById("deliveryProduct");
+      const selectTipo = document.getElementById("deliveryType");
+      const ayuda = document.getElementById("deliveryTypeHelp");
+      if (!selectProducto || !selectTipo) return;
+
+      const disponibles = (detalleEntregaActual?.productos || []).filter(p => Number(p.pendiente || 0) > 0);
+      const idx = Number(selectProducto.value);
+      const producto = disponibles[idx];
+      const esFlete = esProductoFleteEntrega(producto);
+      const valorActual = selectTipo.value;
+
+      selectTipo.innerHTML = "";
+
+      if (esFlete) {
+        selectTipo.innerHTML =
+          '<option value="Entrega">🚚 Entrega con flete</option>' +
+          '<option value="Acopio">📦 Acopio</option>';
+        if (ayuda) ayuda.textContent = "Este movimiento corresponde al servicio de flete del presupuesto.";
+      } else {
+        selectTipo.innerHTML =
+          '<option value="Retiro">🏪 Retiro por cliente</option>' +
+          '<option value="Acopio">📦 Acopio</option>';
+        if (ayuda) ayuda.textContent = "El cliente retira la mercadería o la deja acopiada para retirar posteriormente.";
+      }
+
+      if ([...selectTipo.options].some(o => o.value === valorActual)) {
+        selectTipo.value = valorActual;
+      }
     }
 
     function cerrarEditorEntrega(){presupuestoEntregaActual=null;detalleEntregaActual=null;document.getElementById("deliveryModal").classList.remove("visible");}
+
+    document.getElementById("deliveryProduct")?.addEventListener("change", actualizarTiposMovimientoEntrega);
     function mostrarErrorEntrega(mensaje){const box=document.getElementById("deliveryError");box.textContent=mensaje||"Revisá los datos.";box.style.display="block";}
 
     async function guardarMovimientoEntrega(){
