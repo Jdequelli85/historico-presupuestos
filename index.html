@@ -4240,7 +4240,7 @@ const body =
                     String(item.numero || "")
                   )})'
                 >
-                  ✏️
+                  💲
                 </button>
 
                 <button class="edit-button delivery-button" type="button" title="Gestionar entrega" aria-label="Gestionar entrega" onclick='abrirEditorEntrega(${JSON.stringify(String(item.numero || ""))})'>📦</button>
@@ -4439,7 +4439,7 @@ const body =
                     String(item.numero || "")
                   )})'
                 >
-                  ✏️
+                  💲
                 </button>
 
                 <button class="edit-button delivery-button" type="button" title="Gestionar entrega" aria-label="Gestionar entrega" onclick='abrirEditorEntrega(${JSON.stringify(String(item.numero || ""))})'>📦</button>
@@ -5476,13 +5476,18 @@ const body =
         );
 
 
-      // Navegamos en el mismo contexto principal.
-      // Si Gestión está dentro del iframe de PPTO, esto
-      // lleva la ventana principal a PPTO y conserva su
-      // sessionStorage (incluido el token ya autenticado).
-      // Si Histórico se abre directamente, simplemente
-      // navega a PPTO en la misma pestaña.
-      window.top.location.href = url;
+      // En modo integrado, el PPTO principal ya está autenticado:
+      // le enviamos solo el número y él carga el presupuesto sin recargar.
+      if (window.parent !== window) {
+        window.parent.postMessage(
+          { type: "GT_VER_PRESUPUESTO", numero: String(numero) },
+          "https://ppto.gytsrl.com"
+        );
+        return;
+      }
+
+      // Histórico abierto por separado conserva el comportamiento V5.
+      window.location.href = url;
 
     }
 
