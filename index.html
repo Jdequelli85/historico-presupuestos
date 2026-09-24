@@ -2680,12 +2680,19 @@
               </section>
             </main>`;
 
-          try {
-            window.parent.postMessage(
-              { type: "GT_GESTION_READY" },
-              "https://ppto.gytsrl.com"
-            );
-          } catch (_) {}
+          function pedirSesionIntegrada() {
+            try {
+              window.parent.postMessage(
+                { type: "GT_GESTION_READY" },
+                "https://ppto.gytsrl.com"
+              );
+            } catch (_) {}
+          }
+
+          // Primer aviso y reintentos cortos para cubrir cargas/redirects.
+          pedirSesionIntegrada();
+          setTimeout(pedirSesionIntegrada, 300);
+          setTimeout(pedirSesionIntegrada, 1000);
 
         } else {
 
