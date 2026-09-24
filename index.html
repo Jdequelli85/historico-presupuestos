@@ -4578,6 +4578,17 @@ const body =
           r = await jsonp({accion:"registrarMovimientoEntrega",numero:String(presupuestoEntregaActual.numero || ""),idProducto:mov.idProducto,producto:mov.producto,unidad:mov.unidad,cantidad:String(mov.cantidad),tipo:acopio ? "Acopio" : tipoDefault,observaciones:"",token:token});
           if(!r || !r.ok) throw new Error(r?.error || "No se pudo registrar la gestión.");
         }
+
+        // Guardamos también el estado elegido aunque no haya cambios de cantidad.
+        // Esto permite quitar Acopio sin borrar movimientos históricos.
+        r = await jsonp({
+          accion:"actualizarEstadoEntrega",
+          numero:String(presupuestoEntregaActual.numero || ""),
+          estado:acopio ? "Acopio" : "Normal",
+          token:token
+        });
+        if(!r || !r.ok) throw new Error(r?.error || "No se pudo actualizar el estado de entrega.");
+
         detalleEntregaActual = r;
         document.getElementById("deliveryAcopio").checked = String(r.estado || "").trim().toLowerCase() === "acopio";
         actualizarResumenEntregaEnItem(presupuestoEntregaActual, r);
