@@ -2682,9 +2682,11 @@
 
           function pedirSesionIntegrada() {
             try {
+              // Solicitamos la sesión al padre. El padre valida que
+              // este mensaje provenga del iframe de Gestión.
               window.parent.postMessage(
                 { type: "GT_GESTION_READY" },
-                "https://ppto.gytsrl.com"
+                "*"
               );
             } catch (_) {}
           }
