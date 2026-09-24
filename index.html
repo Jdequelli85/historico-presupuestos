@@ -1679,15 +1679,6 @@
 .delivery-info-box{padding:10px 12px;border:1px solid #dde4e7;border-radius:10px;background:#fafbfc}
 .delivery-info-label{font-size:11px;text-transform:uppercase;color:#66757b;font-weight:700;margin-bottom:3px}
 .delivery-info-value{font-size:14px;font-weight:800;color:#26343a}
-.delivery-date-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
-.delivery-date-edit-button{border:1px solid #d1d5db;border-radius:7px;width:32px;height:30px;padding:0;background:#fff;color:#374151;font-size:14px;line-height:1}
-.delivery-date-edit-button:hover{background:#f3f4f6;border-color:#b9bec7}
-.delivery-date-editor{display:flex;align-items:center;gap:7px;flex-wrap:wrap}
-.delivery-date-editor input{height:34px;border:1px solid #d1d5db;border-radius:7px;padding:0 8px;background:#fff}
-.delivery-date-editor button{height:34px;border:1px solid #d1d5db;border-radius:7px;padding:0 10px;background:#fff;font-size:11px;font-weight:800}
-.delivery-date-editor button.primary{background:var(--rojo);border-color:var(--rojo);color:#fff}
-.delivery-date-status{display:none;margin:6px 0 0;padding:7px 9px;border-radius:8px;background:#ecfdf3;color:#176b2c;font-size:12px;font-weight:700}
-.delivery-date-status.visible{display:block}
 .delivery-question{margin:14px 0 10px;padding:13px 14px;border:1px solid #dde4e7;border-radius:10px;background:#fff}
 .delivery-question-title{font-weight:800;margin-bottom:9px}
 .delivery-radio-row{display:flex;gap:18px;align-items:center;flex-wrap:wrap}
@@ -2440,7 +2431,6 @@
       <h2>Gestión de entrega</h2>
       <div id="deliveryNumber" class="payment-number"></div>
       <div id="deliveryInfo" class="delivery-info"></div>
-      <div id="deliveryDateStatus" class="delivery-date-status"></div>
       <div class="delivery-question">
         <div id="deliveryQuestionTitle" class="delivery-question-title">¿Se retiró toda la mercadería?</div>
         <div class="delivery-radio-row">
@@ -2476,8 +2466,10 @@
       "https://raw.githubusercontent.com/Jdequelli85/qr-corralon/main/logo.png";
 
 
+    // Se conserva por compatibilidad con otras referencias,
+    // pero VER utiliza directamente PPTO.
     const PRESUPUESTO_URL =
-      "https://presupuesto.gytsrl.com/";
+      "https://ppto.gytsrl.com/";
 
 
     /* =====================================================
@@ -2641,15 +2633,91 @@
        INICIO
        ===================================================== */
 
+    // =====================================================
+    // PRUEBA 1 — SESIÓN RECIBIDA DESDE PPTO
+    // =====================================================
+    let sesionIntegradaRecibida = false;
+
+    window.addEventListener("message", function(event) {
+
+      if (event.origin !== "https://ppto.gytsrl.com") return;
+      if (event.source !== window.parent) return;
+
+      const data = event.data || {};
+      if (data.type !== "GT_GESTION_SESSION") return;
+      if (!data.token || !data.usuario) return;
+
+      sesionIntegradaRecibida = true;
+      token = String(data.token);
+      vendedor = String(data.usuario);
+
+      sessionStorage.setItem("gt_historico_token", token);
+      sessionStorage.setItem("gt_historico_usuario", vendedor);
+
+      mostrarApp();
+      cargarHistorico();
+    });
+
+
     document.addEventListener(
       "DOMContentLoaded",
       function() {
+
+        // PRUEBA 4: si PPTO envió la sesión en el fragmento de la URL,
+        // la tomamos desde location.hash. El fragmento no se transmite
+        // al servidor y luego lo limpiamos de la URL del iframe.
+        if ((!token || !vendedor) && window.parent !== window) {
+          try {
+            const params = new URLSearchParams(location.hash.replace(/^#/, ""));
+            const tokenHash = params.get("gt_session");
+            const usuarioHash = params.get("gt_usuario");
+            if (tokenHash && usuarioHash) {
+              token = String(tokenHash);
+              vendedor = String(usuarioHash);
+              sessionStorage.setItem("gt_historico_token", token);
+              sessionStorage.setItem("gt_historico_usuario", vendedor);
+              history.replaceState(null, document.title, location.pathname + location.search);
+              mostrarApp();
+              cargarHistorico();
+              return;
+            }
+          } catch (_) {}
+        }
 
         if (token && vendedor) {
 
           mostrarApp();
 
           cargarHistorico();
+
+        } else if (window.parent !== window) {
+
+          // En modo integrado NO mostramos el login.
+          // Solicitamos la sesión a PPTO y mostramos un estado temporal.
+          document.body.innerHTML = `
+            <main style="min-height:100vh;display:flex;align-items:center;justify-content:center;background:#f3f4f6;padding:20px;font-family:Arial,Helvetica,sans-serif">
+              <section style="background:#fff;border:1px solid #ddd;border-radius:14px;padding:30px;max-width:420px;text-align:center;box-shadow:0 8px 30px rgba(0,0,0,.08)">
+                <div style="font-size:28px;margin-bottom:10px">📋</div>
+                <strong style="font-size:18px">Conectando con Presupuesto...</strong>
+                <div style="margin-top:8px;color:#666;font-size:14px">Esperando la sesión del usuario.</div>
+              </section>
+            </main>`;
+
+          function pedirSesionIntegrada() {
+            try {
+              // Solicitamos la sesión al padre. El padre valida que
+              // este mensaje provenga del iframe de Gestión.
+              window.parent.postMessage(
+                { type: "GT_GESTION_READY" },
+                "*"
+              );
+            } catch (_) {}
+          }
+
+          // Primer aviso y reintentos cortos para cubrir cargas/redirects.
+          pedirSesionIntegrada();
+          setTimeout(pedirSesionIntegrada, 300);
+          setTimeout(pedirSesionIntegrada, 1000);
 
         } else {
 
@@ -4172,7 +4240,7 @@ const body =
                     String(item.numero || "")
                   )})'
                 >
-                  ✏️
+                  💲
                 </button>
 
                 <button class="edit-button delivery-button" type="button" title="Gestionar entrega" aria-label="Gestionar entrega" onclick='abrirEditorEntrega(${JSON.stringify(String(item.numero || ""))})'>📦</button>
@@ -4371,7 +4439,7 @@ const body =
                     String(item.numero || "")
                   )})'
                 >
-                  ✏️
+                  💲
                 </button>
 
                 <button class="edit-button delivery-button" type="button" title="Gestionar entrega" aria-label="Gestionar entrega" onclick='abrirEditorEntrega(${JSON.stringify(String(item.numero || ""))})'>📦</button>
@@ -4440,69 +4508,7 @@ const body =
       box.innerHTML =
         '<div class="delivery-info-box"><div class="delivery-info-label">Fecha de compra</div><div class="delivery-info-value">' + escaparHTML(formatearFechaEntregaUI(fechaCompra)) + '</div></div>' +
         '<div class="delivery-info-box"><div class="delivery-info-label">' + (conFlete ? 'Fecha de entrega' : 'Flete') + '</div><div class="delivery-info-value">' +
-        (conFlete
-          ? '<div class="delivery-date-row"><span>' + escaparHTML(formatearFechaEntregaUI(fechaFlete)) + '</span><button type="button" class="delivery-date-edit-button" title="Cambiar fecha de entrega" aria-label="Cambiar fecha de entrega" onclick="editarFechaEntrega()">✏️</button></div>'
-          : 'Sin flete') + '</div></div>';
-    }
-
-    function editarFechaEntrega() {
-      const item = presupuestoEntregaActual;
-      if (!item || !esFletePresupuesto(item, detalleEntregaActual)) return;
-      const box = document.getElementById("deliveryInfo");
-      const fechaActual = String(item.fechaEntregaISO || item.fechaEntrega || "").trim();
-      if (!box) return;
-      const cajas = box.querySelectorAll(".delivery-info-box");
-      const cajaFecha = cajas[cajas.length - 1];
-      if (!cajaFecha) return;
-      cajaFecha.innerHTML =
-        '<div class="delivery-info-label">Fecha de entrega</div>' +
-        '<div class="delivery-date-editor">' +
-          '<input id="deliveryDateInput" type="date" value="' + escaparHTML(fechaActual) + '">' +
-          '<button type="button" class="primary" onclick="guardarFechaEntrega()">GUARDAR</button>' +
-          '<button type="button" onclick="renderizarInfoEntrega(presupuestoEntregaActual, detalleEntregaActual)">CANCELAR</button>' +
-        '</div>';
-      document.getElementById("deliveryDateInput")?.focus();
-    }
-
-    async function guardarFechaEntrega() {
-      if (!presupuestoEntregaActual || !detalleEntregaActual || !token) return;
-      const input = document.getElementById("deliveryDateInput");
-      const nuevaFecha = String(input?.value || "").trim();
-      if (!/^\d{4}-\d{2}-\d{2}$/.test(nuevaFecha)) {
-        mostrarErrorEntrega("Seleccioná una fecha de entrega válida.");
-        return;
-      }
-
-      const status = document.getElementById("deliveryDateStatus");
-      const botones = document.querySelectorAll(".delivery-date-editor button");
-      botones.forEach(function(b){ b.disabled = true; });
-      if (status) { status.textContent = "Guardando nueva fecha..."; status.classList.remove("visible"); }
-
-      try {
-        const r = await jsonp({
-          accion: "actualizarFechaEntrega",
-          numero: String(presupuestoEntregaActual.numero || ""),
-          fechaEntrega: nuevaFecha,
-          token: token
-        });
-        if (!r || !r.ok) throw new Error(r?.error || "No se pudo actualizar la fecha de entrega.");
-
-        presupuestoEntregaActual.fechaEntregaISO = String(r.fechaEntregaISO || nuevaFecha);
-        presupuestoEntregaActual.fechaEntrega = String(r.fechaEntregaISO || nuevaFecha);
-        renderizarInfoEntrega(presupuestoEntregaActual, detalleEntregaActual);
-        if (status) {
-          status.textContent = "✓ Fecha de entrega actualizada correctamente.";
-          status.classList.add("visible");
-        }
-        renderizarCalendarioEntregas();
-        aplicarFiltros();
-        setTimeout(function(){
-          if (status) status.classList.remove("visible");
-        }, 2500);
-      } catch(e) {
-        botones.forEach(function(b){ b.disabled = false; });
-        mostrarErrorEntrega(e.message || "No se pudo actualizar la fecha de entrega.");
-      }
+        (conFlete ? escaparHTML(formatearFechaEntregaUI(fechaFlete)) : 'Sin flete') + '</div></div>';
     }
 
     function obtenerClaveProductoEntrega(p) {
@@ -5464,17 +5470,25 @@ const body =
 
 
       const url =
-        PRESUPUESTO_URL +
-        "?ver=" +
+        "https://ppto.gytsrl.com/?ver=" +
         encodeURIComponent(
           numero
         );
 
 
-      window.open(
-        url,
-        "_blank"
-      );
+      // En modo integrado, PPTO es la ventana principal.
+      // Le enviamos el número; PPTO conserva el token que ya tiene
+      // y navega al presupuesto pasando la sesión en el fragmento.
+      if (window.parent !== window) {
+        window.parent.postMessage(
+          { type: "GT_VER_PRESUPUESTO", numero: String(numero) },
+          "*"
+        );
+        return;
+      }
+
+      // Histórico abierto por separado conserva el comportamiento V5.
+      window.location.href = url;
 
     }
 
