@@ -5476,12 +5476,13 @@ const body =
         );
 
 
-      // En modo integrado, el PPTO principal ya está autenticado:
-      // le enviamos solo el número y él carga el presupuesto sin recargar.
+      // En modo integrado, PPTO es la ventana principal.
+      // Le enviamos el número; PPTO conserva el token que ya tiene
+      // y navega al presupuesto pasando la sesión en el fragmento.
       if (window.parent !== window) {
         window.parent.postMessage(
           { type: "GT_VER_PRESUPUESTO", numero: String(numero) },
-          "https://ppto.gytsrl.com"
+          "*"
         );
         return;
       }
