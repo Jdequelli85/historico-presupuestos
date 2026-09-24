@@ -4513,6 +4513,7 @@ const body =
         const r = await jsonp({accion:"detalleEntrega",numero:String(item.numero || ""),token:token});
         if (!r || !r.ok) throw new Error(r?.error || "No se pudo cargar la entrega.");
         detalleEntregaActual = r;
+        document.getElementById("deliveryAcopio").checked = String(r.estado || "").trim().toLowerCase() === "acopio";
         actualizarResumenEntregaEnItem(item, r);
         renderizarInfoEntrega(item, r);
         actualizarPreguntaEntrega();
@@ -4578,11 +4579,13 @@ const body =
           if(!r || !r.ok) throw new Error(r?.error || "No se pudo registrar la gestión.");
         }
         detalleEntregaActual = r;
+        document.getElementById("deliveryAcopio").checked = String(r.estado || "").trim().toLowerCase() === "acopio";
         actualizarResumenEntregaEnItem(presupuestoEntregaActual, r);
         renderizarInfoEntrega(presupuestoEntregaActual, r);
         renderizarDetalleEntrega(r);
         aplicarFiltros();
         document.getElementById("deliveryError").style.display = "none";
+        cerrarEditorEntrega();
       } catch(e) {
         mostrarErrorEntrega(e.message || "No se pudo registrar la gestión.");
       } finally {
