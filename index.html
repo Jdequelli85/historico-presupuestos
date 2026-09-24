@@ -2631,6 +2631,29 @@
        INICIO
        ===================================================== */
 
+    // =====================================================
+    // PRUEBA 1 — SESIÓN RECIBIDA DESDE PPTO
+    // =====================================================
+    window.addEventListener("message", function(event) {
+
+      if (event.origin !== "https://ppto.gytsrl.com") return;
+      if (event.source !== window.parent) return;
+
+      const data = event.data || {};
+      if (data.type !== "GT_GESTION_SESSION") return;
+      if (!data.token || !data.usuario) return;
+
+      token = String(data.token);
+      vendedor = String(data.usuario);
+
+      sessionStorage.setItem("gt_historico_token", token);
+      sessionStorage.setItem("gt_historico_usuario", vendedor);
+
+      mostrarApp();
+      cargarHistorico();
+    });
+
+
     document.addEventListener(
       "DOMContentLoaded",
       function() {
@@ -2640,6 +2663,16 @@
           mostrarApp();
 
           cargarHistorico();
+
+        } else if (window.parent !== window) {
+
+          // En modo integrado esperamos la sesión que envía PPTO.
+          try {
+            window.parent.postMessage(
+              { type: "GT_GESTION_READY" },
+              "https://ppto.gytsrl.com"
+            );
+          } catch (_) {}
 
         } else {
 
