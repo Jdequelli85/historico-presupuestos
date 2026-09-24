@@ -2661,6 +2661,27 @@
       "DOMContentLoaded",
       function() {
 
+        // PRUEBA 4: si PPTO envió la sesión en el fragmento de la URL,
+        // la tomamos desde location.hash. El fragmento no se transmite
+        // al servidor y luego lo limpiamos de la URL del iframe.
+        if ((!token || !vendedor) && window.parent !== window) {
+          try {
+            const params = new URLSearchParams(location.hash.replace(/^#/, ""));
+            const tokenHash = params.get("gt_session");
+            const usuarioHash = params.get("gt_usuario");
+            if (tokenHash && usuarioHash) {
+              token = String(tokenHash);
+              vendedor = String(usuarioHash);
+              sessionStorage.setItem("gt_historico_token", token);
+              sessionStorage.setItem("gt_historico_usuario", vendedor);
+              history.replaceState(null, document.title, location.pathname + location.search);
+              mostrarApp();
+              cargarHistorico();
+              return;
+            }
+          } catch (_) {}
+        }
+
         if (token && vendedor) {
 
           mostrarApp();
