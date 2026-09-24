@@ -4474,7 +4474,7 @@ const body =
         row.innerHTML =
           '<strong>' + escaparHTML(p.producto || p.id || "Producto") + '<br><small class="delivery-unit">' + escaparHTML(p.unidad || "") + '</small></strong>' +
           '<span>' + formatearCantidadEntrega(total) + ' ' + escaparHTML(p.unidad || "") + '</span>' +
-          '<span><input class="delivery-qty-input" type="number" min="0" max="' + total + '" step="0.01" value="' + realizado + '" data-key="' + escaparHTML(key) + '" disabled></span>';
+          '<span><input class="delivery-qty-input" type="number" min="0" max="' + total + '" step="1" value="' + Math.round(realizado) + '" data-key="' + escaparHTML(key) + '" disabled></span>';
         lines.appendChild(row);
       });
 
