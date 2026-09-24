@@ -1672,14 +1672,29 @@
     }
 
   
-.delivery-modal{max-width:760px;width:calc(100% - 32px);max-height:90vh;overflow:auto}
+.delivery-modal{max-width:760px;width:calc(100% - 32px);max-height:92vh;overflow:auto}
 .delivery-summary-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:12px 0}
 .delivery-status-box{margin:10px 0;padding:10px 12px;border-radius:10px;background:#f1f5f7;font-weight:700}
-.delivery-lines{display:grid;gap:7px;margin:12px 0;max-height:190px;overflow:auto}
-.delivery-line{display:grid;grid-template-columns:1.8fr .7fr .7fr .7fr;gap:8px;align-items:center;padding:8px 10px;border:1px solid #dde4e7;border-radius:8px;font-size:13px}
+.delivery-info{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:12px 0}
+.delivery-info-box{padding:10px 12px;border:1px solid #dde4e7;border-radius:10px;background:#fafbfc}
+.delivery-info-label{font-size:11px;text-transform:uppercase;color:#66757b;font-weight:700;margin-bottom:3px}
+.delivery-info-value{font-size:14px;font-weight:800;color:#26343a}
+.delivery-question{margin:14px 0 10px;padding:13px 14px;border:1px solid #dde4e7;border-radius:10px;background:#fff}
+.delivery-question-title{font-weight:800;margin-bottom:9px}
+.delivery-radio-row{display:flex;gap:18px;align-items:center;flex-wrap:wrap}
+.delivery-radio{display:flex;align-items:center;gap:7px;font-weight:700;cursor:pointer}
+.delivery-radio input{accent-color:#BE000F}
+.delivery-acopio{margin:10px 0 14px;padding:10px 12px;border-radius:10px;background:#fff8df;border:1px solid #e5cf79}
+.delivery-acopio label{display:flex;align-items:center;gap:9px;font-weight:800;cursor:pointer}
+.delivery-acopio input{width:18px;height:18px;accent-color:#c28b00}
+.delivery-lines{display:grid;gap:7px;margin:12px 0;max-height:280px;overflow:auto}
+.delivery-line{display:grid;grid-template-columns:1.7fr .8fr .8fr;gap:8px;align-items:center;padding:9px 10px;border:1px solid #dde4e7;border-radius:8px;font-size:13px}
 .delivery-line span{text-align:right}.delivery-line-head{font-weight:700;background:#f7f8f9}.delivery-pending{font-weight:700}
-.entrega-mini{display:block;margin-top:4px;font-size:11px;font-weight:700}.entrega-pendiente{opacity:.7}.entrega-parcial{font-weight:800}.entrega-todo{font-weight:900}.delivery-button{font-size:15px}.delivery-type-help{margin-top:6px;font-size:12px;line-height:1.35;color:#66757b}
-@media(max-width:640px){.delivery-summary-grid{grid-template-columns:1fr}.delivery-line{grid-template-columns:1fr 1fr}.delivery-line span{text-align:left}}
+.delivery-qty-input{width:100%;box-sizing:border-box;padding:7px 8px;border:1px solid #cfd8dc;border-radius:7px;text-align:right;font-weight:700}
+.delivery-qty-input:disabled{background:#f5f6f7;color:#59666b}
+.delivery-unit{font-size:11px;color:#66757b}
+.entrega-mini{display:block;margin-top:4px;font-size:11px;font-weight:700}.entrega-pendiente{opacity:.7}.entrega-parcial{font-weight:800}.entrega-todo{font-weight:900}.entrega-acopio{color:#9a6a00;font-weight:900}.delivery-button{font-size:15px}
+@media(max-width:640px){.delivery-summary-grid{grid-template-columns:1fr}.delivery-info{grid-template-columns:1fr}.delivery-line{grid-template-columns:1fr 1fr}.delivery-line span{text-align:left}.delivery-line-head{display:none}.delivery-radio-row{gap:12px}}
 </style>
 </head>
 
@@ -2415,26 +2430,22 @@
     <div class="payment-modal delivery-modal">
       <h2>Gestión de entrega</h2>
       <div id="deliveryNumber" class="payment-number"></div>
-      <div class="delivery-summary-grid">
-        <div class="payment-summary-box"><div class="payment-summary-label">Comprado</div><div id="deliveryTotal" class="payment-summary-value">0</div></div>
-        <div class="payment-summary-box"><div class="payment-summary-label">Retirado / entregado</div><div id="deliveryDone" class="payment-summary-value">0</div></div>
-        <div class="payment-summary-box"><div class="payment-summary-label">Pendiente</div><div id="deliveryPending" class="payment-summary-value">0</div></div>
+      <div id="deliveryInfo" class="delivery-info"></div>
+      <div class="delivery-question">
+        <div id="deliveryQuestionTitle" class="delivery-question-title">¿Se retiró toda la mercadería?</div>
+        <div class="delivery-radio-row">
+          <label class="delivery-radio"><input type="radio" name="deliveryAll" value="no" checked> NO</label>
+          <label class="delivery-radio"><input type="radio" name="deliveryAll" value="si"> SÍ</label>
+        </div>
       </div>
+      <div class="delivery-acopio"><label><input id="deliveryAcopio" type="checkbox"> 📦 ACOPIO</label></div>
       <div id="deliveryStatusBox" class="delivery-status-box">Estado: Pendiente</div>
       <div id="deliveryLines" class="delivery-lines"></div>
-      <div class="payment-field"><label for="deliveryProduct">Producto</label><select id="deliveryProduct"></select></div>
-      <div class="payment-field"><label for="deliveryQuantity">Cantidad a registrar</label><input id="deliveryQuantity" type="number" min="0" step="0.01" inputmode="decimal" placeholder="0"></div>
-      <div class="payment-field">
-        <label for="deliveryType">¿Qué ocurrió con la mercadería?</label>
-        <select id="deliveryType">
-          <option value="Retiro">🏪 Retiro por cliente</option>
-          <option value="Acopio">📦 Acopio</option>
-        </select>
-        <div id="deliveryTypeHelp" class="delivery-type-help"></div>
-      </div>
-      <div class="payment-field"><label for="deliveryObservation">Observaciones</label><input id="deliveryObservation" type="text" maxlength="200" placeholder="Opcional"></div>
       <div id="deliveryError" class="payment-error"></div>
-      <div class="payment-actions"><button class="payment-button" type="button" onclick="cerrarEditorEntrega()">CANCELAR</button><button id="deliverySaveButton" class="payment-button primary" type="button" onclick="guardarMovimientoEntrega()">REGISTRAR</button></div>
+      <div class="payment-actions">
+        <button class="payment-button" type="button" onclick="cerrarEditorEntrega()">CANCELAR</button>
+        <button id="deliverySaveButton" class="payment-button primary" type="button" onclick="guardarGestionEntrega()">GUARDAR</button>
+      </div>
     </div>
   </div>
 
@@ -4379,97 +4390,205 @@ const body =
 
     let presupuestoEntregaActual = null;
     let detalleEntregaActual = null;
+    let gestionEntregaOriginal = {};
 
     function formatearCantidadEntrega(valor) {
       const n = Number(valor || 0);
       return isFinite(n) ? n.toLocaleString("es-AR", {maximumFractionDigits:2}) : "0";
     }
 
-    async function abrirEditorEntrega(numero) {
-      const item = buscarPresupuestoHistorico(numero);
-      if (!item) { mostrarError("No se encontró el presupuesto seleccionado."); return; }
-      presupuestoEntregaActual=item;
-      document.getElementById("deliveryNumber").textContent=String(item.numero||"");
-      document.getElementById("deliveryModal").classList.add("visible");
-      document.getElementById("deliveryError").style.display="none";
-      document.getElementById("deliveryLines").innerHTML="Cargando...";
-      try {
-        const r=await jsonp({accion:"detalleEntrega",numero:String(item.numero||""),token:token});
-        if(!r||!r.ok) throw new Error(r?.error||"No se pudo cargar la entrega.");
-        detalleEntregaActual=r; actualizarResumenEntregaEnItem(item,r); renderizarDetalleEntrega(r);
-      } catch(e) { document.getElementById("deliveryLines").innerHTML=""; mostrarErrorEntrega(e.message||"No se pudo cargar la entrega."); }
+    function formatearFechaEntregaUI(valor) {
+      const s = String(valor || "").trim();
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(s)) return s || "—";
+      const p = s.split("-");
+      return p[2] + "/" + p[1] + "/" + p[0];
+    }
+
+    function esFletePresupuesto(item, detalle) {
+      if (item && item.fechaEntregaISO) return true;
+      return !!(detalle && Array.isArray(detalle.productos) && detalle.productos.some(function(p){
+        return String(p.id || "").toUpperCase().startsWith("ENV-");
+      }));
+    }
+
+    function actualizarPreguntaEntrega() {
+      const conFlete = esFletePresupuesto(presupuestoEntregaActual, detalleEntregaActual);
+      const titulo = document.getElementById("deliveryQuestionTitle");
+      if (titulo) {
+        titulo.textContent = conFlete
+          ? "¿Se realizó el flete de toda la mercadería?"
+          : "¿El cliente retiró toda la mercadería?";
+      }
+    }
+
+    function renderizarInfoEntrega(item, detalle) {
+      const box = document.getElementById("deliveryInfo");
+      if (!box) return;
+      const conFlete = esFletePresupuesto(item, detalle);
+      const fechaCompra = item && (item.fecha || item.fechaPresupuesto || item.fechaCompra) || "";
+      const fechaFlete = item && (item.fechaEntregaISO || item.fechaEntrega) || "";
+      box.innerHTML =
+        '<div class="delivery-info-box"><div class="delivery-info-label">Fecha de compra</div><div class="delivery-info-value">' + escaparHTML(formatearFechaEntregaUI(fechaCompra)) + '</div></div>' +
+        '<div class="delivery-info-box"><div class="delivery-info-label">' + (conFlete ? 'Fecha de entrega' : 'Flete') + '</div><div class="delivery-info-value">' +
+        (conFlete ? escaparHTML(formatearFechaEntregaUI(fechaFlete)) : 'Sin flete') + '</div></div>';
+    }
+
+    function obtenerClaveProductoEntrega(p) {
+      return String(p.id || p.producto || "") + "|" + String(p.unidad || "");
     }
 
     function renderizarDetalleEntrega(detalle) {
-      const resumen = detalle.resumenMixto ? "—" : null;
-      document.getElementById("deliveryTotal").textContent=resumen || formatearCantidadEntrega(detalle.totalComprado);
-      document.getElementById("deliveryDone").textContent=resumen || formatearCantidadEntrega(detalle.totalRealizado);
-      document.getElementById("deliveryPending").textContent=resumen || formatearCantidadEntrega(detalle.totalPendiente);
-      document.getElementById("deliveryStatusBox").textContent="Estado: "+(detalle.estado||"Pendiente")+(detalle.resumenMixto?" · ver cantidades por producto":"");
-      const lines=document.getElementById("deliveryLines"), productos=Array.isArray(detalle.productos)?detalle.productos:[]; lines.innerHTML="";
-      if(!productos.length){lines.innerHTML='<div class="delivery-line">No hay productos comerciales registrados para este presupuesto.</div>';}
-      else { const head=document.createElement("div"); head.className="delivery-line delivery-line-head"; head.innerHTML='<strong>Producto</strong><span>Comprado</span><span>Realizado</span><span>Pendiente</span>'; lines.appendChild(head); productos.forEach(p=>{const row=document.createElement("div");row.className="delivery-line";row.innerHTML='<strong>'+escaparHTML(p.producto||p.id||"Producto")+'<br><small>'+escaparHTML(p.unidad||"")+'</small></strong><span>'+formatearCantidadEntrega(p.comprado)+'</span><span>'+formatearCantidadEntrega(p.realizado)+'</span><span class="delivery-pending">'+formatearCantidadEntrega(p.pendiente)+'</span>';lines.appendChild(row);}); }
-      const select=document.getElementById("deliveryProduct"); select.innerHTML="";
-      productos.filter(p=>Number(p.pendiente||0)>0).forEach((p,index)=>{const o=document.createElement("option");o.value=String(index);o.textContent=(p.producto||p.id||"Producto")+" — pendiente: "+formatearCantidadEntrega(p.pendiente)+" "+(p.unidad||"");select.appendChild(o);});
-      const hayPendientes=select.options.length>0;
-      if(!hayPendientes){const o=document.createElement("option");o.value="";o.textContent="No hay cantidades pendientes";select.appendChild(o);}
-      document.getElementById("deliveryQuantity").disabled=!hayPendientes; document.getElementById("deliverySaveButton").disabled=!hayPendientes;
-      actualizarTiposMovimientoEntrega();
-    }
+      const productos = Array.isArray(detalle.productos) ? detalle.productos : [];
+      const lines = document.getElementById("deliveryLines");
+      lines.innerHTML = "";
 
-    function esProductoFleteEntrega(p) {
-      return String(p?.id || "").trim().toUpperCase().startsWith("ENV-");
-    }
+      document.getElementById("deliveryStatusBox").textContent =
+        "Estado: " + (detalle.estado || "Pendiente") + (detalle.resumenMixto ? " · ver cantidades por producto" : "");
 
-    function actualizarTiposMovimientoEntrega() {
-      const selectProducto = document.getElementById("deliveryProduct");
-      const selectTipo = document.getElementById("deliveryType");
-      const ayuda = document.getElementById("deliveryTypeHelp");
-      if (!selectProducto || !selectTipo) return;
+      gestionEntregaOriginal = {};
+      productos.forEach(function(p){
+        gestionEntregaOriginal[obtenerClaveProductoEntrega(p)] = Number(p.realizado || 0);
+      });
 
-      const disponibles = (detalleEntregaActual?.productos || []).filter(p => Number(p.pendiente || 0) > 0);
-      const idx = Number(selectProducto.value);
-      const producto = disponibles[idx];
-      const esFlete = esProductoFleteEntrega(producto);
-      const valorActual = selectTipo.value;
-
-      selectTipo.innerHTML = "";
-
-      if (esFlete) {
-        selectTipo.innerHTML =
-          '<option value="Entrega">🚚 Entrega con flete</option>' +
-          '<option value="Acopio">📦 Acopio</option>';
-        if (ayuda) ayuda.textContent = "Este movimiento corresponde al servicio de flete del presupuesto.";
-      } else {
-        selectTipo.innerHTML =
-          '<option value="Retiro">🏪 Retiro por cliente</option>' +
-          '<option value="Acopio">📦 Acopio</option>';
-        if (ayuda) ayuda.textContent = "El cliente retira la mercadería o la deja acopiada para retirar posteriormente.";
+      if (!productos.length) {
+        lines.innerHTML = '<div class="delivery-line"><strong>No hay productos comerciales registrados para este presupuesto.</strong></div>';
+        return;
       }
 
-      if ([...selectTipo.options].some(o => o.value === valorActual)) {
-        selectTipo.value = valorActual;
+      const head = document.createElement("div");
+      head.className = "delivery-line delivery-line-head";
+      head.innerHTML = '<strong>Producto</strong><span>Total</span><span>Entregado</span>';
+      lines.appendChild(head);
+
+      productos.forEach(function(p){
+        const key = obtenerClaveProductoEntrega(p);
+        const total = Number(p.comprado || 0);
+        const realizado = Number(p.realizado || 0);
+        const row = document.createElement("div");
+        row.className = "delivery-line";
+        row.dataset.key = key;
+        row.dataset.id = String(p.id || "");
+        row.dataset.unidad = String(p.unidad || "");
+        row.dataset.producto = String(p.producto || "");
+        row.dataset.total = String(total);
+        row.innerHTML =
+          '<strong>' + escaparHTML(p.producto || p.id || "Producto") + '<br><small class="delivery-unit">' + escaparHTML(p.unidad || "") + '</small></strong>' +
+          '<span>' + formatearCantidadEntrega(total) + ' ' + escaparHTML(p.unidad || "") + '</span>' +
+          '<span><input class="delivery-qty-input" type="number" min="0" max="' + total + '" step="0.01" value="' + realizado + '" data-key="' + escaparHTML(key) + '" disabled></span>';
+        lines.appendChild(row);
+      });
+
+      actualizarCamposGestionEntrega();
+    }
+
+    function obtenerRespuestaTodoEntrega() {
+      const r = document.querySelector('input[name="deliveryAll"]:checked');
+      return r ? r.value : "no";
+    }
+
+    function actualizarCamposGestionEntrega() {
+      const todo = obtenerRespuestaTodoEntrega() === "si";
+      document.querySelectorAll(".delivery-qty-input").forEach(function(input){
+        const row = input.closest(".delivery-line");
+        if (!row) return;
+        const total = Number(row.dataset.total || 0);
+        input.disabled = todo;
+        if (todo) input.value = total;
+      });
+    }
+
+    async function abrirEditorEntrega(numero) {
+      const item = buscarPresupuestoHistorico(numero);
+      if (!item) { mostrarError("No se encontró el presupuesto seleccionado."); return; }
+      presupuestoEntregaActual = item;
+      detalleEntregaActual = null;
+      document.getElementById("deliveryNumber").textContent = String(item.numero || "");
+      document.getElementById("deliveryModal").classList.add("visible");
+      document.getElementById("deliveryError").style.display = "none";
+      document.getElementById("deliveryLines").innerHTML = "Cargando...";
+      document.querySelector('input[name="deliveryAll"][value="no"]').checked = true;
+      document.getElementById("deliveryAcopio").checked = false;
+
+      try {
+        const r = await jsonp({accion:"detalleEntrega",numero:String(item.numero || ""),token:token});
+        if (!r || !r.ok) throw new Error(r?.error || "No se pudo cargar la entrega.");
+        detalleEntregaActual = r;
+        actualizarResumenEntregaEnItem(item, r);
+        renderizarInfoEntrega(item, r);
+        actualizarPreguntaEntrega();
+        renderizarDetalleEntrega(r);
+      } catch(e) {
+        document.getElementById("deliveryLines").innerHTML = "";
+        mostrarErrorEntrega(e.message || "No se pudo cargar la entrega.");
       }
     }
 
-    function cerrarEditorEntrega(){presupuestoEntregaActual=null;detalleEntregaActual=null;document.getElementById("deliveryModal").classList.remove("visible");}
+    document.querySelectorAll('input[name="deliveryAll"]').forEach(function(input){
+      input.addEventListener("change", actualizarCamposGestionEntrega);
+    });
 
-    document.getElementById("deliveryProduct")?.addEventListener("change", actualizarTiposMovimientoEntrega);
-    function mostrarErrorEntrega(mensaje){const box=document.getElementById("deliveryError");box.textContent=mensaje||"Revisá los datos.";box.style.display="block";}
+    function cerrarEditorEntrega(){
+      presupuestoEntregaActual = null;
+      detalleEntregaActual = null;
+      document.getElementById("deliveryModal").classList.remove("visible");
+    }
 
-    async function guardarMovimientoEntrega(){
-      if(!presupuestoEntregaActual||!detalleEntregaActual||!token)return;
-      const idx=Number(document.getElementById("deliveryProduct").value); const disponibles=(detalleEntregaActual.productos||[]).filter(p=>Number(p.pendiente||0)>0); const p=disponibles[idx]; const cantidad=Number(document.getElementById("deliveryQuantity").value||0);
-      if(!p){mostrarErrorEntrega("Seleccioná un producto con cantidad pendiente.");return;}
-      if(!isFinite(cantidad)||cantidad<=0){mostrarErrorEntrega("Ingresá una cantidad mayor a 0.");return;}
-      if(cantidad>Number(p.pendiente||0)+1e-9){mostrarErrorEntrega("La cantidad supera lo pendiente de este producto.");return;}
-      const button=document.getElementById("deliverySaveButton");button.disabled=true;button.textContent="GUARDANDO...";
-      try{
-        const r=await jsonp({accion:"registrarMovimientoEntrega",numero:String(presupuestoEntregaActual.numero||""),idProducto:String(p.id||""),producto:String(p.producto||""),unidad:String(p.unidad||""),cantidad:String(cantidad),tipo:String(document.getElementById("deliveryType").value||"Retiro"),observaciones:String(document.getElementById("deliveryObservation").value||""),token:token});
-        if(!r||!r.ok)throw new Error(r?.error||"No se pudo registrar el movimiento.");
-        detalleEntregaActual=r;actualizarResumenEntregaEnItem(presupuestoEntregaActual,r);renderizarDetalleEntrega(r);document.getElementById("deliveryQuantity").value="";document.getElementById("deliveryObservation").value="";aplicarFiltros();
-      }catch(e){mostrarErrorEntrega(e.message||"No se pudo registrar el movimiento.");}
-      finally{button.disabled=false;button.textContent="REGISTRAR";if(!(detalleEntregaActual?.productos||[]).some(p=>Number(p.pendiente||0)>0))button.disabled=true;}
+    function mostrarErrorEntrega(mensaje){
+      const box = document.getElementById("deliveryError");
+      box.textContent = mensaje || "Revisá los datos.";
+      box.style.display = "block";
+    }
+
+    async function guardarGestionEntrega(){
+      if(!presupuestoEntregaActual || !detalleEntregaActual || !token) return;
+
+      const todo = obtenerRespuestaTodoEntrega() === "si";
+      const filas = [...document.querySelectorAll("#deliveryLines .delivery-line")].filter(function(row){
+        return row.dataset && row.dataset.id;
+      });
+
+      const movimientos = [];
+      for (const row of filas) {
+        const total = Number(row.dataset.total || 0);
+        const input = row.querySelector(".delivery-qty-input");
+        const nuevo = todo ? total : Number(input ? input.value : 0);
+        const original = Number(gestionEntregaOriginal[row.dataset.key] || 0);
+        if (!isFinite(nuevo) || nuevo < 0 || nuevo > total + 1e-9) {
+          mostrarErrorEntrega("Revisá las cantidades entregadas.");
+          return;
+        }
+        if (nuevo > original + 1e-9) {
+          movimientos.push({idProducto:row.dataset.id,producto:row.dataset.producto,unidad:row.dataset.unidad,cantidad:nuevo-original});
+        } else if (nuevo < original - 1e-9) {
+          mostrarErrorEntrega("No se puede disminuir una cantidad ya registrada. Si hubo una corrección, la hacemos después desde los movimientos.");
+          return;
+        }
+      }
+
+      const acopio = document.getElementById("deliveryAcopio").checked;
+      const tipoDefault = esFletePresupuesto(presupuestoEntregaActual, detalleEntregaActual) ? "Entrega" : "Retiro";
+      const button = document.getElementById("deliverySaveButton");
+      button.disabled = true;
+      button.textContent = "GUARDANDO...";
+
+      try {
+        let r = detalleEntregaActual;
+        for (const mov of movimientos) {
+          r = await jsonp({accion:"registrarMovimientoEntrega",numero:String(presupuestoEntregaActual.numero || ""),idProducto:mov.idProducto,producto:mov.producto,unidad:mov.unidad,cantidad:String(mov.cantidad),tipo:acopio ? "Acopio" : tipoDefault,observaciones:"",token:token});
+          if(!r || !r.ok) throw new Error(r?.error || "No se pudo registrar la gestión.");
+        }
+        detalleEntregaActual = r;
+        actualizarResumenEntregaEnItem(presupuestoEntregaActual, r);
+        renderizarInfoEntrega(presupuestoEntregaActual, r);
+        renderizarDetalleEntrega(r);
+        aplicarFiltros();
+        document.getElementById("deliveryError").style.display = "none";
+      } catch(e) {
+        mostrarErrorEntrega(e.message || "No se pudo registrar la gestión.");
+      } finally {
+        button.disabled = false;
+        button.textContent = "GUARDAR";
+      }
     }
 
 
@@ -4482,7 +4601,8 @@ const body =
 
     function obtenerClaseEntrega(estado) {
       const texto = String(estado || "Pendiente").trim().toLowerCase();
-      if (texto === "todo") return "entrega-todo";
+      if (texto === "acopio") return "entrega-acopio";
+      if (texto === "todo" || texto === "entregado") return "entrega-todo";
       if (texto === "parcial") return "entrega-parcial";
       return "entrega-pendiente";
     }
