@@ -1695,6 +1695,12 @@
 .delivery-unit{font-size:11px;color:#66757b}
 .entrega-mini{display:block;margin-top:4px;font-size:11px;font-weight:700}.entrega-pendiente{opacity:.7}.entrega-parcial{font-weight:800}.entrega-todo{font-weight:900}.entrega-acopio{color:#9a6a00;font-weight:900}.delivery-button{font-size:15px}
 @media(max-width:640px){.delivery-summary-grid{grid-template-columns:1fr}.delivery-info{grid-template-columns:1fr}.delivery-line{grid-template-columns:1fr 1fr}.delivery-line span{text-align:left}.delivery-line-head{display:none}.delivery-radio-row{gap:12px}}
+
+.delivery-date-edit{border:0;background:transparent;cursor:pointer;font-size:15px;padding:2px 5px;border-radius:6px;}
+.delivery-date-edit:hover{background:#eee;}
+.delivery-date-editor{display:flex;gap:6px;align-items:center;flex-wrap:wrap;}
+.delivery-date-editor input{padding:8px 9px;border:1px solid #ccc;border-radius:7px;font:inherit;}
+.delivery-date-editor .payment-button{padding:8px 10px;font-size:12px;}
 </style>
 </head>
 
@@ -4508,7 +4514,10 @@ const body =
       box.innerHTML =
         '<div class="delivery-info-box"><div class="delivery-info-label">Fecha de compra</div><div class="delivery-info-value">' + escaparHTML(formatearFechaEntregaUI(fechaCompra)) + '</div></div>' +
         '<div class="delivery-info-box"><div class="delivery-info-label">' + (conFlete ? 'Fecha de entrega' : 'Flete') + '</div><div class="delivery-info-value">' +
-        (conFlete ? escaparHTML(formatearFechaEntregaUI(fechaFlete)) : 'Sin flete') + '</div></div>';
+        (conFlete ?
+          '<span id="deliveryDateDisplay">' + escaparHTML(formatearFechaEntregaUI(fechaFlete)) + '</span> ' +
+          '<button type="button" class="delivery-date-edit" title="Editar fecha de entrega" aria-label="Editar fecha de entrega" onclick="editarFechaEntrega()">✏️</button>'
+          : 'Sin flete') + '</div></div>';
     }
 
     function obtenerClaveProductoEntrega(p) {
@@ -4574,6 +4583,81 @@ const body =
         if (todo) input.value = total;
       });
     }
+
+    function editarFechaEntrega() {
+      if (!presupuestoEntregaActual || !esFletePresupuesto(presupuestoEntregaActual, detalleEntregaActual)) return;
+
+      const fechaActual = String(
+        presupuestoEntregaActual.fechaEntregaISO ||
+        presupuestoEntregaActual.fechaEntrega ||
+        ""
+      ).trim();
+
+      const box = document.getElementById("deliveryInfo");
+      if (!box) return;
+
+      const valorInicial = /^\d{4}-\d{2}-\d{2}$/.test(fechaActual)
+        ? fechaActual
+        : "";
+
+      box.innerHTML =
+        '<div class="delivery-info-box"><div class="delivery-info-label">Fecha de compra</div><div class="delivery-info-value">' +
+          escaparHTML(formatearFechaEntregaUI(presupuestoEntregaActual.fecha || "")) +
+        '</div></div>' +
+        '<div class="delivery-info-box"><div class="delivery-info-label">Fecha de entrega</div>' +
+          '<div class="delivery-date-editor">' +
+            '<input id="deliveryDateInput" type="date" value="' + escaparHTML(valorInicial) + '" aria-label="Nueva fecha de entrega">' +
+            '<button type="button" class="payment-button primary delivery-date-save" onclick="guardarFechaEntrega()">GUARDAR</button>' +
+            '<button type="button" class="payment-button delivery-date-cancel" onclick="cancelarEdicionFechaEntrega()">CANCELAR</button>' +
+          '</div>' +
+        '</div>';
+
+      const input = document.getElementById("deliveryDateInput");
+      if (input) input.focus();
+    }
+
+    function cancelarEdicionFechaEntrega() {
+      renderizarInfoEntrega(presupuestoEntregaActual, detalleEntregaActual);
+    }
+
+    async function guardarFechaEntrega() {
+      if (!presupuestoEntregaActual || !token) return;
+
+      const input = document.getElementById("deliveryDateInput");
+      const fecha = String(input ? input.value : "").trim();
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(fecha)) {
+        mostrarErrorEntrega("Seleccioná una fecha de entrega válida.");
+        return;
+      }
+
+      const botones = document.querySelectorAll(".delivery-date-save, .delivery-date-cancel");
+      botones.forEach(function(b){ b.disabled = true; });
+
+      try {
+        const r = await jsonp({
+          accion: "actualizarFechaEntrega",
+          numero: String(presupuestoEntregaActual.numero || ""),
+          fechaEntrega: fecha,
+          token: token
+        });
+
+        if (!r || !r.ok) throw new Error(r?.error || "No se pudo actualizar la fecha de entrega.");
+
+        const fechaActualizada = String(r.fechaEntregaISO || fecha).trim();
+        presupuestoEntregaActual.fechaEntregaISO = fechaActualizada;
+        presupuestoEntregaActual.fechaEntrega = fechaActualizada;
+
+        renderizarInfoEntrega(presupuestoEntregaActual, detalleEntregaActual);
+        renderizarCalendarioEntregas();
+        aplicarFiltros();
+        document.getElementById("deliveryError").style.display = "none";
+      } catch (e) {
+        mostrarErrorEntrega(e.message || "No se pudo actualizar la fecha de entrega.");
+      } finally {
+        botones.forEach(function(b){ b.disabled = false; });
+      }
+    }
+
 
     async function abrirEditorEntrega(numero) {
       const item = buscarPresupuestoHistorico(numero);
