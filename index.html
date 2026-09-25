@@ -502,6 +502,7 @@
         minmax(220px, 2fr)
         minmax(160px, 1fr)
         minmax(160px, 1fr)
+        minmax(160px, 1fr)
         auto;
 
       gap: 12px;
@@ -857,18 +858,23 @@
     }
 
     .estado.registrado {
-      background: #ecfdf3;
-      color: #176b2c;
+      background: #f3f4f6;
+      color: #4b5563;
     }
 
-    .estado.parcial {
+    .estado.pendiente {
       background: #fff7ed;
-      color: #b45309;
+      color: #c2410c;
+    }
+
+    .estado.domicilio {
+      background: #f3e8ff;
+      color: #7e22ce;
     }
 
     .estado.pagado {
-      background: #eff6ff;
-      color: #1d4ed8;
+      background: #ecfdf3;
+      color: #176b2c;
     }
 
     /* =====================================================
@@ -2113,6 +2119,48 @@
 
               <option value="">
                 Todos
+              </option>
+
+            </select>
+
+          </div>
+
+
+          <!-- ESTADO -->
+
+          <div class="filter-group">
+
+            <label
+              class="filter-label"
+              for="filtroEstado"
+            >
+              Estado
+            </label>
+
+            <select
+              id="filtroEstado"
+              class="filter-select"
+              onchange="aplicarFiltros()"
+            >
+
+              <option value="">
+                Todos
+              </option>
+
+              <option value="registrado">
+                Registrado
+              </option>
+
+              <option value="pendiente">
+                Pago pendiente
+              </option>
+
+              <option value="domicilio">
+                Pago en Domicilio
+              </option>
+
+              <option value="pagado">
+                Pagado
               </option>
 
             </select>
@@ -3770,6 +3818,12 @@
       const rango =
         obtenerRangoFecha();
 
+      const estadoFiltro =
+        document
+          .getElementById("filtroEstado")
+          .value
+          .trim();
+
 
       historicoFiltrado =
         historico.filter(
@@ -3873,6 +3927,20 @@
                 item.vendedor || ""
               ).trim() !==
               vendedorFiltro
+            ) {
+
+              return false;
+
+            }
+
+
+            /* ------------------------------
+               ESTADO
+               ------------------------------ */
+
+            if (
+              estadoFiltro &&
+              obtenerEstadoVisual(item) !== estadoFiltro
             ) {
 
               return false;
@@ -4177,27 +4245,18 @@ const body =
             );
 
 
-          const estadoTextoBase =
-            String(
-              item.estado ||
-              "Registrado"
-            ).trim();
+          const estadoVisual =
+            obtenerEstadoVisual(item);
 
           const estadoTexto =
-            Number(item.montoPagado) === -1
-              ? "Pago en Domicilio"
-              : estadoTextoBase;
-
-          const estado =
             escaparHTML(
-              estadoTexto
+              obtenerTextoEstadoVisual(item)
             );
 
           const estadoClase =
             obtenerClaseEstado(
-              estadoTexto
+              estadoVisual
             );
-
 
           const total =
             formatearMoneda(
@@ -4361,29 +4420,18 @@ const body =
             );
 
 
-          const estadoTextoBase =
-            String(
-              item.estado ||
-              "Registrado"
-            ).trim();
+          const estadoVisual =
+            obtenerEstadoVisual(item);
 
           const estadoTexto =
-            Number(item.montoPagado) === -1
-              ? "Pago en Domicilio"
-              : estadoTextoBase;
-
-
-          const estado =
             escaparHTML(
-              estadoTexto
+              obtenerTextoEstadoVisual(item)
             );
-
 
           const estadoClase =
             obtenerClaseEstado(
-              estadoTexto
+              estadoVisual
             );
-
 
           const total =
             formatearMoneda(
@@ -4826,24 +4874,89 @@ const body =
     }
 
 
-    function obtenerClaseEstado(estado) {
+    function obtenerEstadoVisual(item) {
 
-      const texto =
+      if (
+        Number(item?.montoPagado) === -1
+      ) {
+        return "domicilio";
+      }
+
+      const total =
+        numeroSeguro(
+          item?.total
+        );
+
+      const monto =
+        numeroSeguro(
+          item?.montoPagado
+        );
+
+      const estadoInterno =
         String(
-          estado || ""
+          item?.estado || ""
         ).trim()
           .toLowerCase();
 
       if (
-        texto === "pagado"
+        estadoInterno === "pagado" ||
+        (total > 0 && monto >= total)
       ) {
         return "pagado";
       }
 
       if (
-        texto === "pago parcial"
+        monto > 0 &&
+        (total <= 0 || monto < total)
       ) {
-        return "parcial";
+        return "pendiente";
+      }
+
+      return "registrado";
+
+    }
+
+
+    function obtenerTextoEstadoVisual(item) {
+
+      const estado =
+        obtenerEstadoVisual(item);
+
+      if (estado === "domicilio") {
+        return "Pago en Domicilio";
+      }
+
+      if (estado === "pendiente") {
+        return "Pago pendiente";
+      }
+
+      if (estado === "pagado") {
+        return "Pagado";
+      }
+
+      return "Registrado";
+
+    }
+
+
+    function obtenerClaseEstado(estadoVisual) {
+
+      const texto =
+        String(
+          estadoVisual || ""
+        ).trim()
+          .toLowerCase();
+
+      if (texto === "pagado") {
+        return "pagado";
+      }
+
+      if (texto === "domicilio") {
+        return "domicilio";
+      }
+
+      if (texto === "pendiente") {
+        return "pendiente";
       }
 
       return "registrado";
