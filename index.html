@@ -1702,6 +1702,268 @@
 .entrega-mini{display:block;margin-top:4px;font-size:11px;font-weight:700}.entrega-pendiente{opacity:.7}.entrega-parcial{font-weight:800}.entrega-todo{font-weight:900}.entrega-acopio{color:#9a6a00;font-weight:900}.delivery-button{font-size:15px}
 @media(max-width:640px){.delivery-summary-grid{grid-template-columns:1fr}.delivery-info{grid-template-columns:1fr}.delivery-line{grid-template-columns:1fr 1fr}.delivery-line span{text-align:left}.delivery-line-head{display:none}.delivery-radio-row{gap:12px}}
 
+
+/* =====================================================
+   RESUMEN DE ENTREGAS DEL DÍA
+   ===================================================== */
+
+.delivery-day-modal{
+  width:min(900px, calc(100vw - 32px));
+  max-width:900px;
+  max-height:92vh;
+  overflow:hidden;
+  padding:24px;
+}
+
+.delivery-day-header{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:18px;
+  margin-bottom:16px;
+}
+
+.delivery-day-title{
+  margin:0;
+  font-size:24px;
+  line-height:1.2;
+  font-weight:800;
+}
+
+.delivery-day-subtitle{
+  margin-top:5px;
+  color:var(--muted);
+  font-size:14px;
+}
+
+.delivery-day-actions{
+  display:flex;
+  gap:8px;
+  flex-shrink:0;
+}
+
+.delivery-day-body{
+  width:100%;
+  max-height:calc(92vh - 145px);
+  overflow-y:auto;
+  overflow-x:hidden;
+}
+
+.delivery-report-order{
+  width:100%;
+  margin:0 0 18px;
+  padding:0 0 16px;
+  border-bottom:1px solid var(--gris2);
+  break-inside:avoid;
+  page-break-inside:avoid;
+}
+
+.delivery-report-order:last-child{
+  margin-bottom:0;
+  border-bottom:0;
+}
+
+.delivery-report-order-head{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  margin-bottom:8px;
+}
+
+.delivery-report-number{
+  color:var(--rojo);
+  font-size:16px;
+  font-weight:800;
+}
+
+.delivery-report-status{
+  padding:5px 9px;
+  border-radius:999px;
+  background:#f3f4f6;
+  color:#4b5563;
+  font-size:11px;
+  font-weight:800;
+  white-space:nowrap;
+}
+
+.delivery-report-status.parcial{
+  background:#fff7ed;
+  color:#c2410c;
+}
+
+.delivery-report-status.todo{
+  background:#ecfdf3;
+  color:#176b2c;
+}
+
+.delivery-report-status.acopio{
+  background:#fff8df;
+  color:#9a6a00;
+}
+
+.delivery-report-data{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) minmax(150px,.65fr);
+  gap:5px 18px;
+  margin-bottom:10px;
+  font-size:13px;
+}
+
+.delivery-report-address{
+  grid-column:1 / -1;
+}
+
+.delivery-report-products{
+  width:100% !important;
+  min-width:0 !important;
+  max-width:100%;
+  table-layout:fixed;
+  border-collapse:collapse;
+  border:1px solid var(--gris2);
+  font-size:13px;
+}
+
+.delivery-report-products th,
+.delivery-report-products td{
+  padding:9px 10px;
+  border-bottom:1px solid var(--gris2);
+  overflow-wrap:anywhere;
+}
+
+.delivery-report-products th{
+  background:#fafafa;
+  color:#4b5563;
+  font-size:11px;
+  text-transform:uppercase;
+  letter-spacing:.04em;
+  text-align:left;
+}
+
+.delivery-report-products th:last-child,
+.delivery-report-products td:last-child{
+  width:145px;
+  text-align:right;
+  white-space:nowrap;
+}
+
+.delivery-report-products tbody tr:last-child td{
+  border-bottom:0;
+}
+
+.delivery-report-no-products,
+.delivery-day-loading,
+.delivery-day-empty,
+.delivery-day-error{
+  padding:16px;
+  border-radius:10px;
+  background:#f7f8f9;
+  color:#59666b;
+  font-size:13px;
+}
+
+.delivery-day-error{
+  margin-bottom:12px;
+  background:var(--rojo-suave);
+  color:var(--rojo);
+  font-weight:700;
+}
+
+@media(max-width:680px){
+  .delivery-day-modal{
+    width:calc(100vw - 20px);
+    max-width:none;
+    padding:18px;
+  }
+
+  .delivery-day-header{
+    display:block;
+  }
+
+  .delivery-day-title{
+    font-size:20px;
+  }
+
+  .delivery-day-actions{
+    margin-top:12px;
+  }
+
+  .delivery-day-actions .payment-button{
+    flex:1;
+  }
+
+  .delivery-day-body{
+    max-height:calc(92vh - 180px);
+  }
+
+  .delivery-report-data{
+    grid-template-columns:1fr;
+    gap:5px;
+  }
+
+  .delivery-report-address{
+    grid-column:auto;
+  }
+
+  .delivery-report-products th:last-child,
+  .delivery-report-products td:last-child{
+    width:110px;
+  }
+}
+
+@media print{
+  @page{
+    size:A4 portrait;
+    margin:12mm;
+  }
+
+  body *{
+    visibility:hidden !important;
+  }
+
+  #deliveryDayModal,
+  #deliveryDayModal *{
+    visibility:visible !important;
+  }
+
+  #deliveryDayModal{
+    position:absolute !important;
+    inset:0 !important;
+    display:block !important;
+    padding:0 !important;
+    background:white !important;
+  }
+
+  #deliveryDayModal .delivery-day-modal{
+    position:static !important;
+    width:100% !important;
+    max-width:none !important;
+    max-height:none !important;
+    overflow:visible !important;
+    padding:0 !important;
+    box-shadow:none !important;
+    border-radius:0 !important;
+  }
+
+  #deliveryDayModal .delivery-day-header{
+    margin-bottom:12px;
+  }
+
+  #deliveryDayModal .delivery-day-actions{
+    display:none !important;
+  }
+
+  #deliveryDayModal .delivery-day-body{
+    max-height:none !important;
+    overflow:visible !important;
+  }
+
+  #deliveryDayModal .delivery-report-products{
+    width:100% !important;
+    min-width:0 !important;
+  }
+}
+
 .delivery-date-edit{border:0;background:transparent;cursor:pointer;font-size:15px;padding:2px 5px;border-radius:6px;}
 .delivery-date-edit:hover{background:#eee;}
 .delivery-date-editor{display:flex;gap:6px;align-items:center;flex-wrap:wrap;}
@@ -2517,6 +2779,28 @@
     </div>
   </div>
 
+
+  <!-- =====================================================
+       MODAL — RESUMEN DE ENTREGAS DEL DÍA
+       ===================================================== -->
+  <div id="deliveryDayModal" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="deliveryDayTitle">
+    <div class="payment-modal delivery-day-modal">
+      <div class="delivery-day-header">
+        <div>
+          <h2 id="deliveryDayTitle" class="delivery-day-title">Envíos correspondientes a —</h2>
+          <div id="deliveryDaySubtitle" class="delivery-day-subtitle"></div>
+        </div>
+        <div class="delivery-day-actions">
+          <button class="payment-button" type="button" onclick="imprimirResumenEntregas()">🖨️ IMPRIMIR</button>
+          <button class="payment-button" type="button" onclick="cerrarResumenEntregas()">CERRAR</button>
+        </div>
+      </div>
+      <div id="deliveryDayBody" class="delivery-day-body">
+        <div class="delivery-day-loading">Cargando entregas...</div>
+      </div>
+    </div>
+  </div>
+
   <div id="calendarTooltip" class="calendar-tooltip"></div>
 
 
@@ -3195,6 +3479,19 @@
     }
 
 
+    function cerrarCalendarioEntregas() {
+      const calendario = document.getElementById("deliveryCalendar");
+      const boton = document.getElementById("calendarButton");
+
+      if (calendario) calendario.classList.remove("visible");
+      if (boton) {
+        boton.classList.remove("active");
+        boton.setAttribute("aria-expanded", "false");
+      }
+      ocultarTooltipCalendario();
+    }
+
+
     function cambiarMesCalendario(diferencia) {
 
       calendarioMes = new Date(
@@ -3276,6 +3573,11 @@
         button.dataset.fecha = fechaISO;
 
         if (numeros.length) {
+          button.addEventListener("click", function() {
+            ocultarTooltipCalendario();
+            cerrarCalendarioEntregas();
+            abrirResumenEntregas(fechaISO, numeros);
+          });
           const dot = document.createElement("span");
           dot.className = "delivery-dot";
           dot.setAttribute("aria-hidden", "true");
@@ -4548,6 +4850,399 @@ const body =
 
 
     }
+
+
+
+    /* =====================================================
+       RESUMEN DE ENTREGAS POR FECHA
+       ===================================================== */
+
+    function obtenerTextoEstadoEntregaResumen(estado) {
+      const texto = String(estado || "Pendiente").trim();
+      return texto || "Pendiente";
+    }
+
+    function obtenerClaseEstadoEntregaResumen(estado) {
+      const texto = String(estado || "").trim().toLowerCase();
+      if (texto === "acopio") return "acopio";
+      if (texto === "parcial") return "parcial";
+      if (texto === "todo" || texto === "entregado") return "todo";
+      return "";
+    }
+
+    function obtenerDireccionResumen(item, detalle) {
+      const fuentes = [item || {}, detalle || {}];
+
+      const claves = [
+        "direccion", "dirección", "domicilio", "direccionEntrega",
+        "direcciónEntrega", "domicilioEntrega", "direccion_entrega",
+        "domicilio_entrega", "direccionCliente", "domicilioCliente"
+      ];
+
+      for (const fuente of fuentes) {
+        for (const clave of claves) {
+          const valor = fuente[clave];
+          if (valor !== undefined && valor !== null && String(valor).trim()) {
+            return String(valor).trim();
+          }
+        }
+      }
+
+      return "No informada";
+    }
+
+    function obtenerProductosResumenEntrega(detalle) {
+      const productos = Array.isArray(detalle && detalle.productos)
+        ? detalle.productos
+        : [];
+
+      // Los ENV-* representan el producto/servicio de envío y no deben
+      // aparecer como mercadería dentro del listado de la entrega.
+      return productos.filter(function(p) {
+        return !String(p && p.id || "").trim().toUpperCase().startsWith("ENV-");
+      });
+    }
+
+    function construirResumenEntregaHTML(item, detalle) {
+      const numero = escaparHTML(item && item.numero || "");
+      const cliente = escaparHTML(item && item.cliente || "Sin cliente");
+      const telefono = escaparHTML(item && item.telefono || "—");
+      const direccion = escaparHTML(obtenerDireccionResumen(item, detalle));
+
+      // En este resumen mostramos el estado del PAGO, que es el dato
+      // administrativo más importante para la entrega.
+      const estadoVisualPago = obtenerEstadoVisual(item);
+      const estado = obtenerTextoEstadoVisual(item);
+      const claseEstado = estadoVisualPago;
+
+      const productos = obtenerProductosResumenEntrega(detalle);
+
+      let productosHTML = "";
+
+      if (!productos.length) {
+        productosHTML =
+          '<div class="delivery-report-no-products">No hay productos comerciales registrados para este presupuesto.</div>';
+      } else {
+        const filas = productos.map(function(p) {
+          const nombre = escaparHTML(p.producto || p.nombre || p.id || "Producto");
+          const unidad = String(p.unidad || "").trim();
+          // Para el resumen del calendario mostramos la cantidad TOTAL
+          // comprada/presupuestada, no la cantidad ya entregada.
+          const totalComprado = Number(p.comprado || 0);
+
+          return '<tr>' +
+            '<td>' + nombre + (unidad ? ' <span class="delivery-unit">(' + escaparHTML(unidad) + ')</span>' : '') + '</td>' +
+            '<td>' + escaparHTML(formatearCantidadEntrega(totalComprado)) + (unidad ? ' ' + escaparHTML(unidad) : '') + '</td>' +
+          '</tr>';
+        }).join("");
+
+        productosHTML =
+          '<table class="delivery-report-products">' +
+            '<thead><tr><th>Producto</th><th>Cantidad</th></tr></thead>' +
+            '<tbody>' + filas + '</tbody>' +
+          '</table>';
+      }
+
+      return '' +
+        '<article class="delivery-report-order">' +
+          '<div class="delivery-report-order-head">' +
+            '<div class="delivery-report-number">N.º PPTO ' + numero + '</div>' +
+            '<div class="delivery-report-status ' + claseEstado + '">' + escaparHTML(estado) + '</div>' +
+          '</div>' +
+          '<div class="delivery-report-data">' +
+            '<div><strong>Nombre:</strong> ' + cliente + '</div>' +
+            '<div><strong>CEL:</strong> ' + telefono + '</div>' +
+            '<div class="delivery-report-address"><strong>Dirección:</strong> ' + direccion + '</div>' +
+          '</div>' +
+          productosHTML +
+        '</article>';
+    }
+
+    async function abrirResumenEntregas(fechaISO, numeros) {
+      const modal = document.getElementById("deliveryDayModal");
+      const title = document.getElementById("deliveryDayTitle");
+      const subtitle = document.getElementById("deliveryDaySubtitle");
+      const body = document.getElementById("deliveryDayBody");
+
+      if (!modal || !body || !Array.isArray(numeros) || !numeros.length) return;
+
+      const fechaUI = formatearFechaISO(fechaISO);
+      title.textContent = "Envíos correspondientes a " + fechaUI;
+      subtitle.textContent = numeros.length === 1
+        ? "1 entrega programada"
+        : numeros.length + " entregas programadas";
+
+      body.innerHTML = '<div class="delivery-day-loading">Cargando información de las entregas...</div>';
+      modal.classList.add("visible");
+
+      try {
+        const items = numeros.map(function(numero) {
+          return buscarPresupuestoHistorico(numero);
+        }).filter(Boolean);
+
+        if (!items.length) {
+          body.innerHTML = '<div class="delivery-day-empty">No se encontraron los presupuestos de esta fecha.</div>';
+          return;
+        }
+
+        const resultados = await Promise.all(items.map(async function(item) {
+          try {
+            const r = await jsonp({
+              accion: "detalleEntrega",
+              numero: String(item.numero || ""),
+              token: token
+            });
+
+            if (!r || !r.ok) {
+              throw new Error(r && r.error || "No se pudo cargar la entrega.");
+            }
+
+            return { item: item, detalle: r };
+          } catch (e) {
+            return { item: item, detalle: { estado: item.entregaEstado || "Pendiente", productos: [] }, error: e };
+          }
+        }));
+
+        body.innerHTML = resultados.map(function(resultado) {
+          return construirResumenEntregaHTML(resultado.item, resultado.detalle);
+        }).join("");
+
+        const errores = resultados.filter(function(r) { return r.error; }).length;
+        if (errores) {
+          body.insertAdjacentHTML(
+            "afterbegin",
+            '<div class="delivery-day-error">Algunas entregas no pudieron cargar su detalle completo.</div>'
+          );
+        }
+
+      } catch (e) {
+        body.innerHTML =
+          '<div class="delivery-day-error">' +
+          escaparHTML(e.message || "No se pudo cargar el resumen de entregas.") +
+          '</div>';
+      }
+    }
+
+    function cerrarResumenEntregas() {
+      const modal = document.getElementById("deliveryDayModal");
+      if (modal) modal.classList.remove("visible");
+    }
+
+    function imprimirResumenEntregas() {
+      const modal = document.getElementById("deliveryDayModal");
+      const title = document.getElementById("deliveryDayTitle");
+      const subtitle = document.getElementById("deliveryDaySubtitle");
+      const body = document.getElementById("deliveryDayBody");
+
+      if (!modal || !modal.classList.contains("visible") || !body) return;
+
+      /*
+       * Imprimimos en una ventana/documento independiente.
+       * De esta forma el navegador recibe únicamente el informe
+       * y no la ventana del Histórico completa.
+       */
+      const printWindow = window.open("", "_blank", "width=900,height=1000");
+
+      if (!printWindow) {
+        alert("El navegador bloqueó la ventana de impresión. Permití las ventanas emergentes para este sitio.");
+        return;
+      }
+
+      const css = `
+        @page {
+          size: A4 portrait;
+          margin: 15mm;
+        }
+
+        * {
+          box-sizing: border-box;
+        }
+
+        html, body {
+          margin: 0;
+          padding: 0;
+          background: #fff;
+          color: #222;
+          font-family: Arial, Helvetica, sans-serif;
+          font-size: 13px;
+        }
+
+        .print-page {
+          width: 100%;
+        }
+
+        h1 {
+          margin: 0;
+          font-size: 23px;
+          line-height: 1.2;
+          font-weight: 800;
+        }
+
+        .subtitle {
+          margin: 5px 0 18px;
+          color: #6b7280;
+          font-size: 13px;
+        }
+
+        .delivery-report-order {
+          width: 100%;
+          margin: 0 0 18px;
+          padding: 0 0 16px;
+          border-bottom: 1px solid #d1d5db;
+          break-inside: avoid;
+          page-break-inside: avoid;
+        }
+
+        .delivery-report-order:last-child {
+          border-bottom: 0;
+        }
+
+        .delivery-report-order-head {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 12px;
+          margin-bottom: 8px;
+        }
+
+        .delivery-report-number {
+          color: #BE000F;
+          font-size: 16px;
+          font-weight: 800;
+        }
+
+        .delivery-report-status {
+          padding: 4px 8px;
+          border-radius: 999px;
+          background: #f3f4f6;
+          color: #4b5563;
+          font-size: 10px;
+          font-weight: 800;
+          white-space: nowrap;
+        }
+
+        .delivery-report-status.parcial {
+          background: #fff7ed;
+          color: #c2410c;
+        }
+
+        .delivery-report-status.todo {
+          background: #ecfdf3;
+          color: #176b2c;
+        }
+
+        .delivery-report-status.acopio {
+          background: #fff8df;
+          color: #9a6a00;
+        }
+
+        .delivery-report-data {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 4px 18px;
+          margin-bottom: 9px;
+          font-size: 12px;
+        }
+
+        .delivery-report-address {
+          grid-column: 1 / -1;
+        }
+
+        .delivery-report-products {
+          width: 100%;
+          min-width: 0;
+          border-collapse: collapse;
+          table-layout: fixed;
+          border: 1px solid #d1d5db;
+          font-size: 12px;
+        }
+
+        .delivery-report-products th,
+        .delivery-report-products td {
+          padding: 8px 9px;
+          border-bottom: 1px solid #e5e7eb;
+          overflow-wrap: anywhere;
+        }
+
+        .delivery-report-products th {
+          background: #f8f8f8;
+          color: #4b5563;
+          font-size: 10px;
+          text-transform: uppercase;
+          letter-spacing: .04em;
+          text-align: left;
+        }
+
+        .delivery-report-products th:last-child,
+        .delivery-report-products td:last-child {
+          width: 125px;
+          text-align: right;
+          white-space: nowrap;
+        }
+
+        .delivery-report-products tbody tr:last-child td {
+          border-bottom: 0;
+        }
+
+        .delivery-day-error,
+        .delivery-day-empty {
+          padding: 12px;
+          border: 1px solid #e5e7eb;
+          border-radius: 8px;
+        }
+
+        @media print {
+          .delivery-report-order {
+            break-inside: avoid;
+            page-break-inside: avoid;
+          }
+        }
+      `;
+
+      printWindow.document.open();
+      printWindow.document.write(`
+        <!DOCTYPE html>
+        <html lang="es">
+        <head>
+          <meta charset="UTF-8">
+          <title>Resumen de entregas</title>
+          <style>${css}</style>
+        </head>
+        <body>
+          <main class="print-page">
+            <h1>${escaparHTML(title ? title.textContent : "Envíos")}</h1>
+            <div class="subtitle">${escaparHTML(subtitle ? subtitle.textContent : "")}</div>
+            ${body.innerHTML}
+          </main>
+        </body>
+        </html>
+      `);
+      printWindow.document.close();
+
+      setTimeout(function() {
+        if (printWindow && !printWindow.closed) {
+          printWindow.focus();
+          printWindow.print();
+        }
+      }, 300);
+
+      /*
+       * Esperamos a que el documento independiente termine de renderizar
+       * antes de abrir la impresión.
+       */
+      printWindow.onload = function() {
+        printWindow.focus();
+        setTimeout(function() {
+          printWindow.print();
+        }, 150);
+      };
+    }
+
+    document.addEventListener("keydown", function(event) {
+      if (event.key === "Escape") {
+        cerrarResumenEntregas();
+      }
+    });
 
 
     /* =====================================================
