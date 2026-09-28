@@ -2839,6 +2839,12 @@
 
     let historicoFiltrado = [];
 
+    // Precarga/cache de presupuestos recientes para abrir VER sin
+    // volver a consultar Google Sheets en cada presupuesto.
+    const HISTORICO_45_CACHE_KEY = "gt_historico_45d_v1";
+    let historicoDetalleReciente = {};
+    let cargaHistoricoEnCurso = null;
+
     // Mes actualmente mostrado en el calendario.
     let calendarioMes = new Date(
       new Date().getFullYear(),
@@ -3304,74 +3310,37 @@
        CARGAR HISTÓRICO
        ===================================================== */
 
-    async function cargarHistorico() {
-
-      if (!token) {
-
-        mostrarLogin();
-
-        return;
-
-      }
-
-
-      mostrarLoading();
-
-      ocultarError();
-
+    function guardarCacheHistorico45() {
 
       try {
+        const payload = {
+          timestamp: Date.now(),
+          presupuestos: historico,
+          detalleReciente: historicoDetalleReciente
+        };
+        localStorage.setItem(
+          HISTORICO_45_CACHE_KEY,
+          JSON.stringify(payload)
+        );
+      } catch (_) {}
 
-        const respuesta =
-          await jsonp({
-
-            accion: "historico",
-
-            token: token
-
-          });
-
-
-        if (
-          !respuesta ||
-          !respuesta.ok
-        ) {
-
-          const mensaje =
-            respuesta?.error ||
-            "No se pudo cargar el histórico.";
+    }
 
 
-          if (
-            mensaje
-              .toLowerCase()
-              .includes("sesión")
-          ) {
+    function cargarCacheHistorico45() {
 
-            cerrarSesion();
+      try {
+        const texto = localStorage.getItem(HISTORICO_45_CACHE_KEY);
+        if (!texto) return false;
 
-            mostrarLoginError(
-              mensaje
-            );
+        const cache = JSON.parse(texto);
+        if (!cache || !Array.isArray(cache.presupuestos)) return false;
 
-            return;
-
-          }
-
-
-          throw new Error(
-            mensaje
-          );
-
-        }
-
-
-        historico =
-          Array.isArray(
-            respuesta.presupuestos
-          )
-            ? respuesta.presupuestos
-            : [];
+        historico = cache.presupuestos;
+        historicoDetalleReciente =
+          cache.detalleReciente && typeof cache.detalleReciente === "object"
+            ? cache.detalleReciente
+            : {};
 
         historico.forEach(function(item) {
           item.entregaEstado = item.entregaEstado || "Pendiente";
@@ -3380,25 +3349,102 @@
           item.entregaPendiente = Number(item.entregaPendiente || 0);
         });
 
-
         prepararVendedores();
-
         renderizarCalendarioEntregas();
-
         aplicarFiltros();
 
+        return true;
 
-      } catch (error) {
-
-        mostrarError(
-          error.message ||
-          "No se pudo cargar el histórico."
-        );
-
-
-        mostrarEmpty();
-
+      } catch (_) {
+        return false;
       }
+
+    }
+
+
+    async function cargarHistorico(opciones) {
+
+      opciones = opciones || {};
+
+      if (!token) {
+        mostrarLogin();
+        return;
+      }
+
+      if (cargaHistoricoEnCurso) {
+        return cargaHistoricoEnCurso;
+      }
+
+      const usarCache = opciones.usarCache !== false;
+      const cacheMostrado = usarCache ? cargarCacheHistorico45() : false;
+
+      if (!cacheMostrado) {
+        mostrarLoading();
+      }
+
+      ocultarError();
+
+      cargaHistoricoEnCurso = (async function() {
+        try {
+          const respuesta = await jsonp({
+            accion: "historico",
+            token: token,
+            incluirDetalleReciente: "1",
+            diasRecientes: "45"
+          });
+
+          if (!respuesta || !respuesta.ok) {
+            const mensaje =
+              respuesta?.error ||
+              "No se pudo cargar el histórico.";
+
+            if (mensaje.toLowerCase().includes("sesión")) {
+              cerrarSesion();
+              mostrarLoginError(mensaje);
+              return;
+            }
+
+            throw new Error(mensaje);
+          }
+
+          historico = Array.isArray(respuesta.presupuestos)
+            ? respuesta.presupuestos
+            : [];
+
+          historicoDetalleReciente =
+            respuesta.detalleReciente && typeof respuesta.detalleReciente === "object"
+              ? respuesta.detalleReciente
+              : {};
+
+          historico.forEach(function(item) {
+            item.entregaEstado = item.entregaEstado || "Pendiente";
+            item.entregaComprado = Number(item.entregaComprado || 0);
+            item.entregaRealizado = Number(item.entregaRealizado || 0);
+            item.entregaPendiente = Number(item.entregaPendiente || 0);
+          });
+
+          guardarCacheHistorico45();
+          prepararVendedores();
+          renderizarCalendarioEntregas();
+          aplicarFiltros();
+
+        } catch (error) {
+          // Si había cache, conservamos la pantalla funcional y solo
+          // informamos del fallo de actualización. Si no había cache,
+          // mostramos el error como hasta ahora.
+          if (!cacheMostrado) {
+            mostrarError(
+              error.message ||
+              "No se pudo cargar el histórico."
+            );
+            mostrarEmpty();
+          }
+        } finally {
+          cargaHistoricoEnCurso = null;
+        }
+      })();
+
+      return cargaHistoricoEnCurso;
 
     }
 
@@ -6455,27 +6501,87 @@ const body =
         return;
       }
 
+      const numeroNormalizado = String(numero).trim();
+      const precargado = historicoDetalleReciente[numeroNormalizado] || null;
 
-      const url =
-        "https://ppto.gytsrl.com/?ver=" +
-        encodeURIComponent(
-          numero
-        );
-
-
-      // En modo integrado, PPTO es la ventana principal.
-      // Le enviamos el número; PPTO conserva el token que ya tiene
-      // y navega al presupuesto pasando la sesión en el fragmento.
+      // En modo integrado, PPTO es la ventana principal. Si el presupuesto
+      // está dentro de los últimos 45 días, enviamos también sus datos para
+      // que PPTO lo renderice directamente sin consultar Google Sheets.
       if (window.parent !== window) {
         window.parent.postMessage(
-          { type: "GT_VER_PRESUPUESTO", numero: String(numero) },
+          {
+            type: "GT_VER_PRESUPUESTO",
+            numero: numeroNormalizado,
+            presupuesto: precargado ? precargado.presupuesto : null,
+            productos: precargado ? precargado.productos : null
+          },
           "*"
         );
         return;
       }
 
-      // Histórico abierto por separado conserva el comportamiento V5.
-      window.location.href = url;
+      // Histórico abierto por separado mantiene el comportamiento anterior.
+      // La precarga se utiliza principalmente cuando Gestión está integrada
+      // dentro de PPTO, que es donde evitamos la consulta adicional.
+      // Fuera de la ventana de 45 días mantenemos el comportamiento anterior.
+      window.location.href =
+        "https://ppto.gytsrl.com/?ver=" +
+        encodeURIComponent(numeroNormalizado);
+
+    }
+
+
+    function cargarPresupuestoPrecargado(numero, presupuesto, productos) {
+
+      const datosProductos = (Array.isArray(productos) ? productos : []).map(function(x) {
+        const id = String(x["ID Producto"] || x["ID"] || "").trim();
+        const idUpper = id.toUpperCase();
+        const cantidadComercialRaw = x["Cantidad comercial"];
+        const cantidadRaw =
+          cantidadComercialRaw !== undefined &&
+          cantidadComercialRaw !== null &&
+          String(cantidadComercialRaw).trim() !== ""
+            ? cantidadComercialRaw
+            : x["Cantidad"];
+        let unidad = String(x["Unidad"] || "").trim();
+        if (!unidad && idUpper.startsWith("ENV-")) unidad = "Flete";
+        if (!unidad && idUpper.startsWith("CRRL-")) unidad = "Unidades";
+        return {
+          id: id,
+          producto: x["Producto"] || "",
+          color: x["Color"] || "",
+          medida: x["Medida"] || "",
+          unidad: unidad,
+          cantidad: Number(cantidadRaw || 0),
+          fechaEntrega: x["Fecha entrega"] || "",
+          m2Solicitados: Number(x["m² solicitados"] || x["m² Solicitados"] || x["m2 Solicitados"] || 0),
+          cajas: Number(x["Cajas"] || 0),
+          precioM2: Number(x["Precio/m²"] || 0),
+          precioCaja: Number(x["Precio/caja"] || 0),
+          subtotal: Number(x["Subtotal"] || 0),
+          conZocalo: String(x["Con zócalo"] || "") === "Sí",
+          tieneOferta: Number(x["Oferta"] || 0) > 0
+        };
+      });
+
+      const datos = {
+        cliente: presupuesto["Cliente"] || "",
+        dniCuit: presupuesto["DNI/CUIT"] || "",
+        telefono: presupuesto["Teléfono"] || "",
+        email: presupuesto["Email"] || "",
+        direccion: presupuesto["Dirección"] || "",
+        formaPago: presupuesto["Forma de pago"] || "",
+        total: Number(presupuesto["Total"] || 0),
+        validez: Number(presupuesto["Validez (días)"] || 0),
+        productos: datosProductos
+      };
+
+      const fecha = presupuesto["Fecha"]
+        ? new Date(presupuesto["Fecha"]).toLocaleDateString("es-AR")
+        : new Date().toLocaleDateString("es-AR");
+
+      $("app").innerHTML = header() +
+        `<main class="container"><div class="historical-actions no-print"><button class="top-button" type="button" onclick="renderizarCalendarioEntregas(); renderAppHistorico();">↩ VOLVER</button><button class="refresh-button no-print" type="button" onclick="window.print()">🖨 IMPRIMIR / GUARDAR PDF</button></div>${quoteHtml(numero, fecha, datos)}</main>`;
 
     }
 
