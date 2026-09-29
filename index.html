@@ -3362,6 +3362,295 @@
     }
 
 
+    function fechaRecentISO(valor) {
+
+      if (!valor) return "";
+
+      if (typeof valor === "string") {
+        const texto = valor.trim();
+
+        if (/^\d{4}-\d{2}-\d{2}$/.test(texto)) {
+          return texto;
+        }
+
+        if (/^\d{2}\/\d{2}\/\d{4}$/.test(texto)) {
+          const partes = texto.split("/");
+          return partes[2] + "-" +
+                 String(partes[1]).padStart(2, "0") + "-" +
+                 String(partes[0]).padStart(2, "0");
+        }
+
+        const fecha = new Date(texto);
+        if (!isNaN(fecha.getTime())) {
+          return (
+            fecha.getFullYear() + "-" +
+            String(fecha.getMonth() + 1).padStart(2, "0") + "-" +
+            String(fecha.getDate()).padStart(2, "0")
+          );
+        }
+
+        return "";
+      }
+
+      if (valor instanceof Date && !isNaN(valor.getTime())) {
+        return (
+          valor.getFullYear() + "-" +
+          String(valor.getMonth() + 1).padStart(2, "0") + "-" +
+          String(valor.getDate()).padStart(2, "0")
+        );
+      }
+
+      return "";
+    }
+
+
+    function fechaRecentMostrar(valor) {
+
+      const iso = fechaRecentISO(valor);
+      if (!iso) return String(valor || "");
+
+      const partes = iso.split("-");
+      return partes[2] + "/" + partes[1] + "/" + partes[0];
+    }
+
+
+    function numeroRecentSeguro(valor) {
+
+      if (typeof valor === "number") {
+        return isFinite(valor) ? valor : 0;
+      }
+
+      let n = Number(
+        String(valor == null ? "" : valor)
+          .replace(/\./g, "")
+          .replace(",", ".")
+      );
+
+      if (isNaN(n)) n = Number(valor);
+      return isFinite(n) ? n : 0;
+    }
+
+
+    function normalizarPresupuestoReciente(item) {
+
+      const raw = item?.presupuesto || {};
+      const productos = Array.isArray(item?.productos)
+        ? item.productos
+        : [];
+
+      const numero = String(
+        item?.numero ||
+        raw["Nº Presupuesto"] ||
+        ""
+      ).trim();
+
+      if (!numero) return null;
+
+      const fechaRaw = raw["Fecha"];
+      const fechaISO = fechaRecentISO(fechaRaw);
+      const fecha = fechaRecentMostrar(fechaRaw);
+
+      const cliente = String(raw["Cliente"] || "").trim();
+      const telefono = String(raw["Teléfono"] || "").trim();
+      const direccion = String(raw["Dirección"] || "").trim();
+      const vendedor = String(raw["Vendedor"] || "").trim();
+
+      const total = numeroRecentSeguro(raw["Total"]);
+
+      let montoPagado = 0;
+
+      if (raw["Monto pagado"] !== undefined) {
+        montoPagado = numeroRecentSeguro(raw["Monto pagado"]);
+      }
+
+      let estado = String(raw["Estado"] || "").trim();
+
+      if (!estado || estado.toLowerCase() === "generado") {
+        estado = "Registrado";
+      }
+
+      if (montoPagado === -1) {
+        estado = "Pago en Domicilio";
+      } else if (montoPagado <= 0) {
+        estado = "Registrado";
+        montoPagado = 0;
+      } else if (montoPagado < total) {
+        estado = "Pago parcial";
+      } else {
+        montoPagado = total;
+        estado = "Pagado";
+      }
+
+      const saldoPendiente =
+        montoPagado === -1
+          ? total
+          : Math.max(0, total - montoPagado);
+
+      let tieneEnvio = false;
+      let fechaEntregaISO = "";
+
+      productos.forEach(function(prod) {
+
+        const id = String(
+          prod["ID Producto"] ||
+          prod["ID"] ||
+          ""
+        ).trim().toUpperCase();
+
+        if (id.startsWith("ENV-")) {
+          tieneEnvio = true;
+        }
+
+        if (!fechaEntregaISO && prod["Fecha entrega"]) {
+          fechaEntregaISO = fechaRecentISO(
+            prod["Fecha entrega"]
+          );
+        }
+
+      });
+
+      return {
+        numero: numero,
+        fecha: fecha,
+        fechaISO: fechaISO,
+        cliente: cliente,
+        telefono: telefono,
+        direccion: direccion,
+        vendedor: vendedor,
+        total: total,
+        estado: estado,
+        montoPagado: montoPagado,
+        saldoPendiente: saldoPendiente,
+        fechaEntregaISO: fechaEntregaISO,
+        tieneEnvio: tieneEnvio,
+        entregaEstado: "Pendiente",
+        entregaComprado: 0,
+        entregaRealizado: 0,
+        entregaPendiente: 0
+      };
+    }
+
+
+    function fusionarHistoricoReciente45(respuesta) {
+
+      const recientes = Array.isArray(respuesta?.presupuestos)
+        ? respuesta.presupuestos
+        : [];
+
+      const indiceExistentes = {};
+
+      historico.forEach(function(item, indice) {
+        indiceExistentes[
+          String(item.numero || "").trim()
+        ] = indice;
+      });
+
+      recientes.forEach(function(item) {
+
+        const normalizado =
+          normalizarPresupuestoReciente(item);
+
+        if (!normalizado) return;
+
+        const numero = normalizado.numero;
+        const posicion = indiceExistentes[numero];
+
+        if (posicion === undefined) {
+
+          historico.push(normalizado);
+
+        } else {
+
+          // Conservamos los datos calculados de entregas que ya tenga
+          // el histórico/caché y actualizamos solamente la información
+          // proveniente de PRESUPUESTOS + DETALLE.
+          const anterior = historico[posicion];
+
+          normalizado.entregaEstado =
+            anterior.entregaEstado || "Pendiente";
+
+          normalizado.entregaComprado =
+            Number(anterior.entregaComprado || 0);
+
+          normalizado.entregaRealizado =
+            Number(anterior.entregaRealizado || 0);
+
+          normalizado.entregaPendiente =
+            Number(anterior.entregaPendiente || 0);
+
+          if (!normalizado.fechaEntregaISO) {
+            normalizado.fechaEntregaISO =
+              anterior.fechaEntregaISO || "";
+          }
+
+          normalizado.tieneEnvio =
+            normalizado.tieneEnvio ||
+            anterior.tieneEnvio === true;
+
+          historico[posicion] = normalizado;
+        }
+
+      });
+
+      // Actualizar/crear detalle reciente para VER sin perder
+      // los detalles más antiguos que ya estén en caché.
+      if (
+        respuesta?.presupuestos &&
+        Array.isArray(respuesta.presupuestos)
+      ) {
+
+        recientes.forEach(function(item) {
+
+          const numero = String(
+            item?.numero ||
+            item?.presupuesto?.["Nº Presupuesto"] ||
+            ""
+          ).trim();
+
+          if (!numero) return;
+
+          historicoDetalleReciente[numero] = {
+            presupuesto: item.presupuesto || {},
+            productos: Array.isArray(item.productos)
+              ? item.productos
+              : []
+          };
+
+        });
+
+      }
+
+      historico.sort(function(a, b) {
+
+        const fechaA = String(a.fechaISO || "");
+        const fechaB = String(b.fechaISO || "");
+
+        if (
+          fechaA &&
+          fechaB &&
+          fechaA !== fechaB
+        ) {
+          return fechaB.localeCompare(fechaA);
+        }
+
+        const numeroA =
+          parseInt(
+            String(a.numero || "").replace(/\D/g, ""),
+            10
+          ) || 0;
+
+        const numeroB =
+          parseInt(
+            String(b.numero || "").replace(/\D/g, ""),
+            10
+          ) || 0;
+
+        return numeroB - numeroA;
+      });
+
+    }
+
+
     async function cargarHistorico(opciones) {
 
       opciones = opciones || {};
@@ -3376,7 +3665,9 @@
       }
 
       const usarCache = opciones.usarCache !== false;
-      const cacheMostrado = usarCache ? cargarCacheHistorico45() : false;
+      const cacheMostrado = usarCache
+        ? cargarCacheHistorico45()
+        : false;
 
       if (!cacheMostrado) {
         mostrarLoading();
@@ -3385,18 +3676,24 @@
       ocultarError();
 
       cargaHistoricoEnCurso = (async function() {
+
         try {
+
+          // IMPORTANTE:
+          // La lista general "historico" es más pesada porque además
+          // calcula entregas y recorre movimientos históricos.
+          // Para la actualización normal usamos exclusivamente
+          // la consulta liviana de los últimos 45 días.
           const respuesta = await jsonp({
-            accion: "historico",
-            token: token,
-            incluirDetalleReciente: "1",
-            diasRecientes: "45"
+            accion: "presupuestosRecientes45",
+            token: token
           });
 
           if (!respuesta || !respuesta.ok) {
+
             const mensaje =
               respuesta?.error ||
-              "No se pudo cargar el histórico.";
+              "No se pudo actualizar los presupuestos recientes.";
 
             if (mensaje.toLowerCase().includes("sesión")) {
               cerrarSesion();
@@ -3407,20 +3704,17 @@
             throw new Error(mensaje);
           }
 
-          historico = Array.isArray(respuesta.presupuestos)
-            ? respuesta.presupuestos
-            : [];
-
-          historicoDetalleReciente =
-            respuesta.detalleReciente && typeof respuesta.detalleReciente === "object"
-              ? respuesta.detalleReciente
-              : {};
+          fusionarHistoricoReciente45(respuesta);
 
           historico.forEach(function(item) {
-            item.entregaEstado = item.entregaEstado || "Pendiente";
-            item.entregaComprado = Number(item.entregaComprado || 0);
-            item.entregaRealizado = Number(item.entregaRealizado || 0);
-            item.entregaPendiente = Number(item.entregaPendiente || 0);
+            item.entregaEstado =
+              item.entregaEstado || "Pendiente";
+            item.entregaComprado =
+              Number(item.entregaComprado || 0);
+            item.entregaRealizado =
+              Number(item.entregaRealizado || 0);
+            item.entregaPendiente =
+              Number(item.entregaPendiente || 0);
           });
 
           guardarCacheHistorico45();
@@ -3429,19 +3723,26 @@
           aplicarFiltros();
 
         } catch (error) {
-          // Si había cache, conservamos la pantalla funcional y solo
-          // informamos del fallo de actualización. Si no había cache,
-          // mostramos el error como hasta ahora.
+
+          // Si el caché ya estaba visible, lo conservamos.
+          // De esta manera una demora puntual del servidor no
+          // deja la Gestión en blanco.
           if (!cacheMostrado) {
+
             mostrarError(
               error.message ||
-              "No se pudo cargar el histórico."
+              "No se pudo actualizar el histórico."
             );
+
             mostrarEmpty();
           }
+
         } finally {
+
           cargaHistoricoEnCurso = null;
+
         }
+
       })();
 
       return cargaHistoricoEnCurso;
