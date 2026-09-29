@@ -3327,6 +3327,47 @@
     }
 
 
+    /*
+     * =====================================================
+     * SINCRONIZACIÓN DEL CACHÉ DESPUÉS DE CAMBIOS
+     * =====================================================
+     *
+     * La carga de los últimos 45 días sigue funcionando igual.
+     * Esta función solo actualiza inmediatamente el presupuesto
+     * modificado y persiste el caché local.
+     */
+
+    function actualizarCacheHistoricoTrasCambio(numero, cambios) {
+
+      const n = String(numero || '').trim();
+      if (!n) return false;
+
+      const item = buscarPresupuestoHistorico(n);
+      if (!item) return false;
+
+      Object.keys(cambios || {}).forEach(function(clave) {
+        if (cambios[clave] !== undefined) {
+          item[clave] = cambios[clave];
+        }
+      });
+
+      // Mantener también la precarga del presupuesto que se envía a PPTO
+      // cuando Histórico está abierto dentro del iframe.
+      const detalle = historicoDetalleReciente[n];
+      if (detalle && detalle.presupuesto && typeof detalle.presupuesto === 'object') {
+        if (cambios.estado !== undefined) {
+          detalle.presupuesto['Estado'] = cambios.estado;
+        }
+        if (cambios.montoPagado !== undefined) {
+          detalle.presupuesto['Monto pagado'] = cambios.montoPagado;
+        }
+      }
+
+      guardarCacheHistorico45();
+      return true;
+    }
+
+
     function cargarCacheHistorico45() {
 
       try {
@@ -5771,6 +5812,27 @@ const body =
         presupuestoEntregaActual.fechaEntregaISO = fechaActualizada;
         presupuestoEntregaActual.fechaEntrega = fechaActualizada;
 
+        const detalleCache = historicoDetalleReciente[String(presupuestoEntregaActual.numero || '').trim()];
+        if (detalleCache && Array.isArray(detalleCache.productos)) {
+          detalleCache.productos.forEach(function(prod) {
+            const id = String(prod['ID Producto'] || prod['ID'] || '').trim().toUpperCase();
+            const unidad = String(prod['Unidad'] || '').trim().toLowerCase();
+            if (id.startsWith('ENV-') || unidad === 'flete') {
+              prod['Fecha entrega'] = fechaActualizada;
+            }
+          });
+        }
+
+        // Persistimos inmediatamente la fecha en el caché local para que
+        // el calendario y la vista histórica no vuelvan a mostrar el valor anterior.
+        actualizarCacheHistoricoTrasCambio(
+          presupuestoEntregaActual.numero,
+          {
+            fechaEntregaISO: fechaActualizada,
+            fechaEntrega: fechaActualizada
+          }
+        );
+
         renderizarInfoEntrega(presupuestoEntregaActual, detalleEntregaActual);
         renderizarCalendarioEntregas();
         aplicarFiltros();
@@ -5801,6 +5863,20 @@ const body =
         detalleEntregaActual = r;
         document.getElementById("deliveryAcopio").checked = String(r.estado || "").trim().toLowerCase() === "acopio";
         actualizarResumenEntregaEnItem(item, r);
+
+        // El detalle recién consultado puede traer información de entrega
+        // más nueva que la almacenada en el caché. La persistimos sin
+        // volver a consultar el histórico completo.
+        actualizarCacheHistoricoTrasCambio(
+          item.numero,
+          {
+            entregaEstado: r.estado || "Pendiente",
+            entregaComprado: Number(r.totalComprado || 0),
+            entregaRealizado: Number(r.totalRealizado || 0),
+            entregaPendiente: Number(r.totalPendiente || 0)
+          }
+        );
+
         renderizarInfoEntrega(item, r);
         actualizarPreguntaEntrega();
         renderizarDetalleEntrega(r);
@@ -5878,8 +5954,23 @@ const body =
         detalleEntregaActual = r;
         document.getElementById("deliveryAcopio").checked = String(r.estado || "").trim().toLowerCase() === "acopio";
         actualizarResumenEntregaEnItem(presupuestoEntregaActual, r);
+
+        // Confirmado por el servidor: persistimos la nueva gestión
+        // inmediatamente en el caché local.
+        actualizarCacheHistoricoTrasCambio(
+          presupuestoEntregaActual.numero,
+          {
+            entregaEstado: r.estado || "Pendiente",
+            entregaComprado: Number(r.totalComprado || 0),
+            entregaRealizado: Number(r.totalRealizado || 0),
+            entregaPendiente: Number(r.totalPendiente || 0)
+          }
+        );
+
         renderizarInfoEntrega(presupuestoEntregaActual, r);
         renderizarDetalleEntrega(r);
+        prepararVendedores();
+        renderizarCalendarioEntregas();
         aplicarFiltros();
         document.getElementById("deliveryError").style.display = "none";
         cerrarEditorEntrega();
@@ -6712,12 +6803,26 @@ const body =
         }
 
 
+        // Actualizamos en memoria y en el caché local únicamente
+        // el presupuesto modificado. No necesitamos volver a leer
+        // los 45 días completos desde Google Sheets.
+        const montoActualizado = Number(respuesta.montoPagado);
+        const estadoActualizado =
+          montoActualizado === -1
+            ? "Pago en Domicilio"
+            : String(respuesta.estado || estado).trim();
+
+        actualizarCacheHistoricoTrasCambio(numero, {
+          estado: estadoActualizado,
+          montoPagado: montoActualizado,
+          saldoPendiente: Number(respuesta.saldoPendiente || 0)
+        });
+
         cerrarEditorPago();
 
-
-        // Recargamos el histórico desde Sheets
-        // para mostrar inmediatamente el nuevo estado.
-        await cargarHistorico();
+        prepararVendedores();
+        renderizarCalendarioEntregas();
+        aplicarFiltros();
 
 
       } catch (error) {
