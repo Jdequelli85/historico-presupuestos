@@ -6503,6 +6503,12 @@ const body =
 
       const numeroNormalizado = String(numero).trim();
       const precargado = historicoDetalleReciente[numeroNormalizado] || null;
+      const registroHistorico = historico.find(function(item) {
+        return String(item?.numero || item?.["Nº Presupuesto"] || "").trim() === numeroNormalizado;
+      }) || null;
+      const estadoPago = registroHistorico
+        ? obtenerTextoEstadoVisual(registroHistorico)
+        : String(precargado?.presupuesto?.["Estado"] || "").trim();
 
       // En modo integrado, PPTO es la ventana principal. Si el presupuesto
       // está dentro de los últimos 45 días, enviamos también sus datos para
@@ -6513,7 +6519,8 @@ const body =
             type: "GT_VER_PRESUPUESTO",
             numero: numeroNormalizado,
             presupuesto: precargado ? precargado.presupuesto : null,
-            productos: precargado ? precargado.productos : null
+            productos: precargado ? precargado.productos : null,
+            estado: estadoPago
           },
           "*"
         );
